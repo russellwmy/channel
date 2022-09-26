@@ -2,6 +2,11 @@
 
 A web3 audio chat app for gamers & metaverse adventurers
 
+## Folders
+`app` contains web frontend codebase
+`contracts` contains all smart contracts
+`docs` contains related documents, e,g, architecture design
+
 ## Techstacks
 
 ### Build tools
