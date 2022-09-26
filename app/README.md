@@ -2,7 +2,7 @@
 
 Web frontend of the Channel app.
 
-### Commands
+## Commands
 
 - `cargo make format` - Formats the code
 - `cargo make clean` - Removes the build directory
