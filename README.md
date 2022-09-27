@@ -7,6 +7,7 @@ A web3 audio chat app for gamers & metaverse adventurers
 - `app` contains web frontend codebase
 - `contracts` contains all smart contracts
 - `docs` contains related documents, e.g. architecture design
+- `template` is the template project for a new project
 
 ## Techstacks
 
