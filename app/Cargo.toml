@@ -6,3 +6,4 @@ edition = "2021"
 
 [dependencies]
 dioxus = { version = "0.2.4", features = ["web", "router", "fermi"] }
+web3-anywhere = { git = "https://github.com/russellwmy/web3-anywhere.git" }
