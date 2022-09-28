@@ -12,8 +12,14 @@ impl Contract {
         );
         assert!(data.name.len() != 0, "missing name.");
         assert!(data.name.len() <= 255, "name is too long.");
-        assert!(data.image.len() != 0, "missing image.");
-        assert!(data.image.len() <= 2048, "image is too long.");
+
+        if data.image.is_some() {
+            assert!(data.image.clone().unwrap().len() != 0, "empty image.");
+            assert!(
+                data.image.clone().unwrap().len() <= 2048,
+                "image is too long."
+            );
+        }
 
         let mut admin_ids = HashSet::new();
         admin_ids.insert(caller_id.clone());

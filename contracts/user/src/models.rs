@@ -5,5 +5,5 @@ use crate::*;
 pub struct UserInfo {
     pub owner_id: AccountId,
     pub name: String,
-    pub image: String,
+    pub image: Option<String>,
 }
