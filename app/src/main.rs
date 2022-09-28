@@ -1,7 +1,8 @@
 use dioxus::prelude::*;
 
-mod wallet;
 mod config;
+mod user;
+mod wallet;
 
 use wallet::components::NearConnectButton;
 
