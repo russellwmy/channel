@@ -22,4 +22,5 @@ jobs:
     - uses: davidB/rust-cargo-make@v1
     - uses: actions/checkout@v3
     - name: Build App
-      run: cd app && cargo make release --verbose
+      working-directory: ./app
+      run: cargo make release --verbose
