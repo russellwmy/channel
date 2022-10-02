@@ -1,15 +1,16 @@
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
-use web_sys::MediaStreamConstraints;
-use web_sys::MediaStream;
-use web_sys::MediaStreamTrack;
-use web_sys::Navigator;
-use web_sys::window;
-use web_sys::Window;
-use web_sys::MediaDevices;
+use web_sys::{
+    window,
+    MediaDevices,
+    MediaStream,
+    MediaStreamConstraints,
+    MediaStreamTrack,
+    Navigator,
+    Window,
+};
 
-use super::error::MediaStreamError;
-use super::helpers::media_devices;
+use super::{error::MediaStreamError, helpers::media_devices};
 
 pub struct Recorder {
     pub media_stream: MediaStream,

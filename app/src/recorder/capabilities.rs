@@ -1,6 +1,5 @@
-use core::fmt::Debug;
-use core::fmt::Formatter;
-use core::fmt::Display;
+use core::fmt::{Debug, Display, Formatter};
+
 use super::error::MediaStreamError;
 
 #[derive(Copy, Clone, Hash, Ord, PartialOrd, Eq, PartialEq)]

@@ -1,20 +1,18 @@
-use js_sys::JsString;
-use js_sys::Object;
-use wasm_bindgen::prelude::*;
-use wasm_bindgen::JsCast;
+use js_sys::{JsString, Object};
+use wasm_bindgen::{prelude::*, JsCast};
 use wasm_bindgen_futures::JsFuture;
-use web_sys::Document;
-use web_sys::Element;
-use web_sys::MediaDevices;
-use web_sys::MediaStream;
-use web_sys::MediaStreamConstraints;
-use web_sys::MediaStreamTrack;
-use web_sys::Navigator;
-use web_sys::Window;
+use web_sys::{
+    Document,
+    Element,
+    MediaDevices,
+    MediaStream,
+    MediaStreamConstraints,
+    MediaStreamTrack,
+    Navigator,
+    Window,
+};
 
-
-use super::capabilities::DeviceSupportedCapabilities;
-use super::error::MediaStreamError;
+use super::{capabilities::DeviceSupportedCapabilities, error::MediaStreamError};
 
 fn window() -> Result<Window, MediaStreamError> {
     match web_sys::window() {
@@ -129,7 +127,8 @@ fn set_autoplay_inline(element: &Element) -> Result<(), MediaStreamError> {
     Ok(())
 }
 
-pub(crate) fn query_supported_constraints() -> Result<Vec<DeviceSupportedCapabilities>, MediaStreamError> {
+pub(crate) fn query_supported_constraints(
+) -> Result<Vec<DeviceSupportedCapabilities>, MediaStreamError> {
     let window: Window = window().expect("should load window object");
     let navigator = window.navigator();
     let media_devices = media_devices(&navigator)?;
