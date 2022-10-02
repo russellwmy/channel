@@ -3,6 +3,7 @@ use dioxus::prelude::*;
 mod config;
 mod user;
 mod wallet;
+mod recorder;
 
 use wallet::components::NearConnectButton;
 
