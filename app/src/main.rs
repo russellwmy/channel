@@ -1,12 +1,22 @@
-use dioxus::prelude::*;
+#![allow(non_snake_case)]
 
+#[warn(unused_imports)]
+#[macro_use]
+extern crate serde_derive;
+
+use dioxus::{prelude::*, router::Router};
+
+mod app;
 mod config;
-mod user;
+mod home;
+mod routes;
 mod wallet;
 
-use wallet::components::NearConnectButton;
+use routes::Routes;
 
 fn main() {
+    #[cfg(target_arch = "wasm32")]
+    wasm_logger::init(wasm_logger::Config::new(log::Level::Trace));
     dioxus::web::launch(app);
 }
 
@@ -17,11 +27,14 @@ fn app(cx: Scope) -> Element {
         wallet.write().check();
     }
 
-    cx.render(rsx! (
-        div {
-            class: "w-screen h-screen flex items-center justify-center",
-            NearConnectButton{}
+    cx.render(rsx!(
+        Router {
+            div {
+            div {
+                class: "w-full h-full overflow-y-auto overflow-x-hidden",
+                Routes {}
+            }
+            }
         }
-
     ))
 }
