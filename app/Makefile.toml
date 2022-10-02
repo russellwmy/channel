@@ -9,7 +9,7 @@ command = "cargo"
 args = ["clean"]
 
 [tasks.build]
-command = "cargo"
+command = "trunk"
 args = ["build"]
 dependencies = ["clean"]
 
