@@ -23,7 +23,7 @@ jobs:
     - uses: jetli/trunk-action@v0.1.0
       with:
         # Optional version of trunk to install(eg. 'v0.8.1', 'latest')
-    version: 'latest'
+        version: 'latest'
     - uses: actions/checkout@v3
     - name: Build App
       working-directory: ./app
