@@ -44,7 +44,7 @@ fn document(window: &Window) -> Result<Document, MediaStreamError> {
     }
 }
 
-fn document_select_elem(doc: &Document, element: &str) -> Result<Element, MediaStreamError> {
+fn document_select_element(doc: &Document, element: &str) -> Result<Element, MediaStreamError> {
     match doc.get_element_by_id(element) {
         Some(elem) => Ok(elem),
         None => {
@@ -56,7 +56,7 @@ fn document_select_elem(doc: &Document, element: &str) -> Result<Element, MediaS
     }
 }
 
-fn element_cast<T: JsCast, U: JsCast>(from: T, name: &str) -> Result<U, MediaStreamError> {
+pub fn element_cast<T: JsCast, U: JsCast>(from: T, name: &str) -> Result<U, MediaStreamError> {
     if !from.has_type::<U>() {
         return Err(MediaStreamError::StructureError {
             structure: name.to_string(),
@@ -150,16 +150,14 @@ pub(crate) fn query_supported_constraints(
     Ok(capabilities_vec)
 }
 
-pub(crate) async fn request_permission() -> Result<(), MediaStreamError> {
+pub(crate) async fn request_permission(
+    constraints: &MediaStreamConstraints,
+) -> Result<(), MediaStreamError> {
     let window: Window = window()?;
     let navigator = window.navigator();
     let media_devices = media_devices(&navigator)?;
 
-    match media_devices.get_user_media_with_constraints(
-        MediaStreamConstraints::new()
-            .video(&JsValue::from_bool(true))
-            .audio(&JsValue::from_bool(false)),
-    ) {
+    match media_devices.get_user_media_with_constraints(constraints) {
         Ok(promise) => {
             let js_future = JsFuture::from(promise);
             match js_future.await {

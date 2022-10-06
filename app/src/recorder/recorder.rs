@@ -1,19 +1,10 @@
-use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
-use web_sys::{
-    window,
-    MediaDevices,
-    MediaStream,
-    MediaStreamConstraints,
-    MediaStreamTrack,
-    Navigator,
-    Window,
-};
+use web_sys::{window, MediaStream, MediaStreamConstraints, Window};
 
-use super::{error::MediaStreamError, helpers::media_devices};
+use super::{error::MediaStreamError, helpers::media_devices, meter};
 
 pub struct Recorder {
-    pub media_stream: MediaStream,
+    pub stream: MediaStream,
     pub constraints: MediaStreamConstraints,
 }
 
@@ -49,8 +40,14 @@ impl Recorder {
         };
 
         Ok(Self {
-            media_stream: stream,
+            stream,
             constraints,
         })
+    }
+
+    pub fn volume(&self) -> f64 {
+        meter::measure(&self.stream);
+
+        0.0
     }
 }
