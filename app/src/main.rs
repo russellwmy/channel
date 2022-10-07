@@ -12,6 +12,7 @@ mod home;
 mod mic_check;
 mod recorder;
 mod routes;
+mod rtc;
 mod wallet;
 
 use routes::Routes;
