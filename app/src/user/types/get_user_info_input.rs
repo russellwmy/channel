@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use web3_anywhere::near::{primitives::types::AccountId};
+use web3_anywhere::near::primitives::types::AccountId;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GetUserInfoInput {

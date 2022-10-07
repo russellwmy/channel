@@ -9,6 +9,8 @@ use dioxus::{prelude::*, router::Router};
 mod app;
 mod config;
 mod home;
+mod mic_check;
+mod recorder;
 mod routes;
 mod wallet;
 
