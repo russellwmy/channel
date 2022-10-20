@@ -38,15 +38,16 @@ RUN /bin/bash -c " \
     rustup default 1.63.0 \
     && rustup target add wasm32-unknown-unknown"
     
-RUN cargo search --limit 0
+
 
 WORKDIR /pwd
 
 USER root
-RUN apt-get install -y build-essential
+RUN apt-get install -y build-essential libssl-dev pkg-config
 USER $UNAME
 
-
+RUN cargo install --locked trunk
+RUN cargo install --force cargo-make
 
 RUN /bin/bash -c "\
     mkdir /home/user/bin \
