@@ -10,23 +10,23 @@ pub struct TempCreateFormProps<'a> {
 }
 
 pub fn TempCreateForm<'a>(cx: Scope<'a, TempCreateFormProps<'a>>) -> Element {
-    let draft = use_state(&cx, || "".to_string());
+    // let draft = use_state(&cx, || "".to_string());
 
     let view = rsx! {
         div {
             class: "p-2 flex justify-around",
-            input {
-                placeholder: "Type here",
-                class: "input w-full max-w-xs m-2",
-                value: "{draft}",
-                oninput: move |evt| draft.set(evt.value.clone()),
-            }
+            // input {
+            //     placeholder: "Type here",
+            //     class: "input w-full max-w-xs m-2",
+            //     value: "{draft}",
+            //     oninput: move |evt| draft.set(evt.value.clone()),
+            // }
             button {
                 onclick: move |evt| {
-                    if !draft.is_empty(){
+                    // if !draft.is_empty(){
                         cx.props.onclick.call(evt);
-                        draft.set(String::from(""));
-                    }
+                        // draft.set(String::from(""));
+                    // }
                 },
                 h2 {"create"}
             }

@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
-#[warn(unused_imports)]
-#[macro_use]
+// #[warn(unused_imports)]
+// #[macro_use]
 extern crate serde_derive;
 
 use dioxus::{prelude::*, router::Router};
