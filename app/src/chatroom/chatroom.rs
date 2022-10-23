@@ -11,6 +11,7 @@ pub static CHATROOM: AtomRef<ChatroomState> = |_| ChatroomState::new();
 pub struct ChatroomState {
     chatrooms: Chatrooms,
     next_id: u32,
+    pub active_id: u32,
 }
 
 impl ChatroomState {
@@ -18,6 +19,7 @@ impl ChatroomState {
         Self {
             chatrooms: Chatrooms::default(),
             next_id: 1,
+            active_id: 1,
         }
     }
 
@@ -36,8 +38,16 @@ impl ChatroomState {
         self._add_id();
     }
 
-    pub fn get_chatroom(&self, id: u32) -> Option<&ChatroomCard> {
-        return self.chatrooms.get(&id);
+    pub fn get_chatroom(&self, id: u32) -> Option<ChatroomCard> {
+        return self.chatrooms.get(&id).cloned();
+    }
+
+    pub fn get_active_chatroom(&self) -> Option<ChatroomCard> {
+        return self.chatrooms.get(&self.active_id).cloned();
+    }
+
+    pub fn set_active_id(&mut self, id: u32) {
+        self.active_id = id
     }
 
     pub fn update_chatroom_name(&mut self, id: u32, name: String) {
@@ -215,6 +225,13 @@ fn test_remove_chatroom_user() {
 
     match chatroom {
         Some(p) => assert!(p.user.len() == 0, "{}", 0),
+        None => assert!(false, "{}", 0),
+    }
+
+    let chatroom = chatrooms.get_active_chatroom();
+
+    match chatroom {
+        Some(p) => assert!(p.id == 1, "{}", 0),
         None => assert!(false, "{}", 0),
     }
 }
