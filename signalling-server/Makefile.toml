@@ -1,5 +1,6 @@
 [env]
 PORT = "9000"
+RUST_LOG = "debug"
 
 [config]
 skip_core_tasks = true
@@ -33,3 +34,4 @@ dependencies = ["clean"]
 description = "Start Singalling server"
 command = "cargo"
 args = ["run"]
+dependencies = ["format"]
