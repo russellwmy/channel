@@ -9,7 +9,11 @@ pub struct ChatroomListCardProps<'a> {
 }
 
 pub fn ChatroomListCard<'a>(cx: Scope<'a, ChatroomListCardProps<'a>>) -> Element {
-    let bg_color = if cx.props.active {"bg-slate-50"} else {"bg-transparent"};
+    let bg_color = if cx.props.active {
+        "bg-slate-50"
+    } else {
+        "bg-transparent"
+    };
     let view = rsx! {
         div {
             // key: cx.props.id,

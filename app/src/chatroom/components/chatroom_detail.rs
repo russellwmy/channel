@@ -13,9 +13,9 @@ pub fn ChatroomDetail(cx: Scope) -> Element {
         match active_chatroom {
             Some(chatroom) => {rsx! (
                 div {
-                    class: "relative",
+                    class: "flex flex-1 flex-col items-stretch relative",
                     div {
-                        class: "flex items-center justify-between border-b-2 border-gray-100 p-4 md:space-x-10",
+                        class: "items-center justify-between border-b-2 border-gray-100 p-4 md:space-x-10",
                         h2 {"{chatroom.name}"}
                     }
                     div {
@@ -29,40 +29,40 @@ pub fn ChatroomDetail(cx: Scope) -> Element {
                         )) 
                     }
                     div {
+                        class: "fixed bottom-0 flex self-center p-4",
                         div {
-                            class: "fixed bottom-0 left-60 right-0 p-4",
-                            div {
-                                class : "flex flex-row justify-around",
-                                button {
-                                    // onclick: move |_| {
-                                    //     // chatroom_state.write().set_active_id(item.id);
-                                    // }, 
-                                    Icon{
-                                        name: if true {"fa-solid fa-microphone-slash"} else {"fa-solid fa-microphone"},
-                                        color: "text-black".to_owned(),
-                                        size: "w-16 h-16".to_owned(),
-                                        bg_color: "bg-neutral-100".to_owned(),
-                                    }
+                            class : "flex flex-row justify-between",
+                            button {
+                                // onclick: move |_| {
+                                //     // chatroom_state.write().set_active_id(item.id);
+                                // }, 
+                                class: "pr-20",
+                                Icon{
+                                    name: if true {"fa-solid fa-microphone-slash"} else {"fa-solid fa-microphone"},
+                                    color: "text-black".to_owned(),
+                                    size: "w-16 h-16".to_owned(),
+                                    bg_color: "bg-neutral-100".to_owned(),
                                 }
-                                button {
-                                    // onclick: 
-                                    Icon{
-                                        name: "fa-solid fa-phone",
-                                        color: "text-white".to_owned(),
-                                        size: "w-16 h-16".to_owned(),
-                                        bg_color: "bg-red-800".to_owned(),
-                                    }
+                            }
+                            button {
+                                // onclick: 
+                                class: "pr-20",
+                                Icon{
+                                    name: "fa-solid fa-phone",
+                                    color: "text-white".to_owned(),
+                                    size: "w-16 h-16".to_owned(),
+                                    bg_color: "bg-red-800".to_owned(),
                                 }
-                                button {
-                                    onclick: move |_| {
-                                        chatroom_state.write().add_chatroom_user(chatroom.id, "new user".to_owned() + &chatroom.user.len().to_string());
-                                    },
-                                    Icon{
-                                        name: "fa-solid fa-plus",
-                                        color: "text-white".to_owned(),
-                                        size: "w-16 h-16".to_owned(),
-                                        bg_color: "bg-blue-500".to_owned(),
-                                    }
+                            }
+                            button {
+                                onclick: move |_| {
+                                    chatroom_state.write().add_chatroom_user(chatroom.id, "new user".to_owned() + &chatroom.user.len().to_string());
+                                },
+                                Icon{
+                                    name: "fa-solid fa-plus",
+                                    color: "text-white".to_owned(),
+                                    size: "w-16 h-16".to_owned(),
+                                    bg_color: "bg-blue-500".to_owned(),
                                 }
                             }
                         }
