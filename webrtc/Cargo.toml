@@ -1,0 +1,33 @@
+[package]
+name = "webrtc"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+protocol = {path = "../protocol"}
+
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_derive = "1"
+wasm-bindgen = "0.2.83"
+wasm-bindgen-futures = "0.4.33"
+wasm-logger = "0.2.0"
+log = "0.4.17"
+thiserror = "1.0.37"
+js-sys = "0.3.60"
+
+[dependencies.web-sys]
+version = "0.3.60"
+features = [
+  "BinaryType",
+  "ErrorEvent",
+  "MediaStream",
+  "RtcPeerConnection",
+  "WebSocket",
+  "MediaStreamConstraints",
+  "MediaStreamTrack",
+  "Window",
+  "Navigator",
+  "MediaDevices",
+  "MediaTrackSupportedConstraints",
+]

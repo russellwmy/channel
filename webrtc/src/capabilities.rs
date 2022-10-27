@@ -1,6 +1,6 @@
 use core::fmt::{Debug, Display, Formatter};
 
-use super::error::MediaStreamError;
+use crate::errors::MediaStreamError;
 
 #[derive(Copy, Clone, Hash, Ord, PartialOrd, Eq, PartialEq)]
 pub enum DeviceSupportedCapabilities {

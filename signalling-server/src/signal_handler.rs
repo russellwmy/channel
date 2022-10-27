@@ -1,5 +1,3 @@
-use std::vec;
-
 use protocol::{SessionId, Signal, UserId};
 use uuid::Uuid;
 use warp::ws::Message;

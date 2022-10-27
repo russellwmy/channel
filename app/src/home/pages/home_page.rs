@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use wasm_bindgen::{closure::Closure, JsCast};
 
 use crate::wallet::components::NearConnectButton;
 
