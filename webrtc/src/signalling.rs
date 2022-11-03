@@ -1,12 +1,25 @@
+use std::borrow::BorrowMut;
+
+use futures::channel::oneshot;
 use protocol::{SessionId, Signal, UserId};
-use wasm_bindgen::JsValue;
+use wasm_bindgen::{prelude::*, JsCast};
 use web_sys::{BinaryType, RtcPeerConnection, WebSocket};
 
-pub fn connect_server(url: &str) -> Result<WebSocket, JsValue> {
-    let ws = WebSocket::new(url)?;
+pub async fn connect_server(url: &str) -> WebSocket {
+    let (tx, rx) = oneshot::channel();
+    let ws = WebSocket::new(url).unwrap();
     ws.set_binary_type(BinaryType::Arraybuffer);
 
-    Ok(ws)
+    let mut tx_opt = Some(tx);
+    let mut ws_opt = Some(ws.clone());
+    let onopen_callback = Closure::<dyn FnMut()>::new(move || {
+        tx_opt.take().unwrap().send(ws_opt.take().unwrap());
+    });
+
+    ws.set_onopen(Some(onopen_callback.as_ref().unchecked_ref()));
+    onopen_callback.forget();
+
+    rx.await.unwrap()
 }
 
 fn send_signal(ws: WebSocket, signal: Signal) {

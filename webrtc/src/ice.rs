@@ -10,10 +10,15 @@ use web_sys::{
     WebSocket,
 };
 
-use crate::{
-    signalling,
-    types::{IceCandidate, SessionState},
-};
+use crate::{session::Session, signalling};
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct IceCandidate {
+    pub candidate: String,
+    pub sdp_mid: String,
+    pub sdp_m_line_index: u16,
+}
 
 pub fn sleep(ms: i32) -> js_sys::Promise {
     js_sys::Promise::new(&mut |resolve, _| {
@@ -24,14 +29,13 @@ pub fn sleep(ms: i32) -> js_sys::Promise {
     })
 }
 
-pub async fn attach_ice_candiate_callback(
+pub async fn when_ice_candiate_callback(
     ws: WebSocket,
     peer: RtcPeerConnection,
-    state: SessionState,
+    session: Session,
 ) -> Result<RtcPeerConnection, JsValue> {
     let onicecandidate_callback = Closure::wrap(Box::new(move |event: RtcPeerConnectionIceEvent| {
         let ws = ws.clone();
-        let state = state.clone();
 
         send_ice_candidate(ws, state, event);
     })
@@ -41,7 +45,7 @@ pub async fn attach_ice_candiate_callback(
     Ok(peer)
 }
 
-pub fn send_ice_candidate(ws: WebSocket, state: SessionState, event: RtcPeerConnectionIceEvent) {
+pub fn send_ice_candidate(ws: WebSocket, session: Session, event: RtcPeerConnectionIceEvent) {
     match event.candidate() {
         Some(candidate) => {
             let candidate_object = candidate.to_json();

@@ -35,3 +35,12 @@ pub enum MediaStreamError {
     #[error("This operation is not implemented yet: {0}")]
     NotImplementedError(String),
 }
+
+#[allow(clippy::module_name_repetitions)]
+#[derive(Error, Debug, Clone)]
+pub enum SessionError {
+    #[error("Could not initialize")]
+    InitializeError,
+    #[error("Cloud not connect to server")]
+    ConnectionError,
+}

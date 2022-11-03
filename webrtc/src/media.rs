@@ -3,7 +3,7 @@ use wasm_bindgen::JsValue;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{MediaDevices, MediaStream, MediaStreamConstraints, MediaStreamTrack, Navigator};
 
-use crate::{dom::window, errors::MediaStreamError, types::DeviceSupportedCapabilities};
+use crate::{device::DeviceSupportedCapabilities, dom::window, errors::MediaStreamError};
 
 pub async fn create_stream(
     constraints: &MediaStreamConstraints,
