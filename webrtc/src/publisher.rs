@@ -1,24 +1,17 @@
-use protocol::{Signal, UserId};
-use wasm_bindgen::{prelude::*, JsCast};
-use web_sys::{
-    BinaryType,
-    ErrorEvent,
-    MediaStream,
-    MediaStreamConstraints,
-    RtcPeerConnection,
-    WebSocket,
-};
+use protocol::UserId;
+use wasm_bindgen::prelude::*;
+use web_sys::{MediaStream, MediaStreamConstraints, RtcPeerConnection};
 
 use crate::{errors::MediaStreamError, media::create_stream};
 
 #[derive(Clone)]
-pub struct Peer {
-    pub local_stream: Option<MediaStream>,
+pub struct Publisher {
     pub user_id: Option<UserId>,
+    pub local_stream: Option<MediaStream>,
     pub connection: RtcPeerConnection,
 }
 
-impl Peer {
+impl Publisher {
     pub fn new() -> Self {
         Self {
             local_stream: None,

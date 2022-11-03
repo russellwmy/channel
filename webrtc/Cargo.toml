@@ -30,4 +30,9 @@ features = [
   "Navigator",
   "MediaDevices",
   "MediaTrackSupportedConstraints",
+  "RtcIceCandidate",
+  "RtcIceCandidateInit",
+  "RtcPeerConnectionIceEvent",
+  "RtcSdpType",
+  "RtcSessionDescriptionInit",
 ]
