@@ -1,8 +1,8 @@
-use protocol::{SessionId, Signal, UserId};
+use protocol::{ChannelId, Signal, UserId};
 use uuid::Uuid;
 use warp::ws::Message;
 
-use crate::types::{Session, Sessions, User, Users};
+use crate::types::{Channel, Channels, User, Users};
 
 pub async fn send_signal(user: &User, signal: Signal) -> Result<(), String> {
     log::info!("Sending to user: {:#?} signal: {:#?}", user.user_id, signal);
@@ -21,7 +21,7 @@ pub async fn when_signal_recieved(
     sender_id: UserId,
     msg: Message,
     users: Users,
-    sessions: Sessions,
+    channels: Channels,
 ) -> Result<(), String> {
     let msg = match msg.to_str() {
         Ok(m) => m,
@@ -40,35 +40,35 @@ pub async fn when_signal_recieved(
     log::info!("Handling signal: {:#?}", result);
 
     match result {
-        Signal::NewSession => {
-            let session_id = SessionId::new(Uuid::new_v4().to_string());
-            log::info!("Created new session: {:?}", session_id);
+        Signal::NewChannel => {
+            let channel_id = ChannelId::new(Uuid::new_v4().to_string());
+            log::info!("Created new session: {:?}", channel_id);
 
-            sessions
+            channels
                 .lock()
                 .await
-                .entry(session_id.clone())
-                .or_insert(Session {
-                    session_id: session_id.clone(),
+                .entry(channel_id.clone())
+                .or_insert(Channel {
+                    channel_id: channel_id.clone(),
                     users: Default::default(),
                 });
 
             match users.lock().await.get_mut(&sender_id) {
                 Some(user) => {
-                    user.session_id = Some(session_id.clone());
-                    let sig_msg = Signal::SessionCreated(session_id.clone());
+                    user.channel_id = Some(channel_id.clone());
+                    let sig_msg = Signal::ChannelCreated(channel_id.clone());
                     send_signal(&user, sig_msg).await?;
                 }
                 None => return Err(format!("can not find user {:?}", sender_id)),
             }
         }
 
-        Signal::JoinSession(session_id) => match sessions.lock().await.get_mut(&session_id) {
+        Signal::JoinChannel(channel_id) => match channels.lock().await.get_mut(&channel_id) {
             Some(session) => {
                 session.users.insert(sender_id.clone());
                 match users.lock().await.get_mut(&sender_id) {
                     Some(user) => {
-                        let sig_msg = Signal::JoinSessionSuccess(session_id);
+                        let sig_msg = Signal::JoinChannelSuccess(channel_id);
                         send_signal(&user, sig_msg).await?;
                     }
                     None => return Err(format!("can not find user {:?}", sender_id)),
@@ -76,58 +76,58 @@ pub async fn when_signal_recieved(
             }
             None => match users.lock().await.get(&sender_id) {
                 Some(user) => {
-                    let sig_msg = Signal::JoinSessionError(session_id);
+                    let sig_msg = Signal::JoinChannelError(channel_id);
                     send_signal(&user, sig_msg).await?;
                 }
                 None => return Err(format!("can not find user {:?}", sender_id)),
             },
         },
 
-        Signal::SdpOffer(session_id, recipient_id, offer) => {
-            match sessions.lock().await.get(&session_id) {
+        Signal::SdpOffer(channel_id, recipient_id, offer) => {
+            match channels.lock().await.get(&channel_id) {
                 Some(_) => match users.lock().await.get(&recipient_id) {
                     Some(recipient) => {
-                        let sig_msg = Signal::SdpOffer(session_id, sender_id, offer);
+                        let sig_msg = Signal::SdpOffer(channel_id, sender_id, offer);
 
                         send_signal(&recipient, sig_msg).await?;
                     }
                     None => return Err(format!("can not find user {:?}", recipient_id)),
                 },
 
-                None => return Err(format!("can not find session {:?}", session_id)),
+                None => return Err(format!("can not find session {:?}", channel_id)),
             }
         }
 
-        Signal::SdpAnswer(session_id, recipient_id, offer) => {
-            match sessions.lock().await.get(&session_id) {
+        Signal::SdpAnswer(channel_id, recipient_id, offer) => {
+            match channels.lock().await.get(&channel_id) {
                 Some(_) => match users.lock().await.get(&recipient_id) {
                     Some(recipient) => {
-                        let sig_msg = Signal::SdpAnswer(session_id, sender_id, offer);
+                        let sig_msg = Signal::SdpAnswer(channel_id, sender_id, offer);
                         send_signal(&recipient, sig_msg).await?;
                     }
                     None => return Err(format!("can not find user {:?}", recipient_id)),
                 },
-                None => return Err(format!("can not find session {:?}", session_id)),
+                None => return Err(format!("can not find session {:?}", channel_id)),
             }
         }
 
-        Signal::ICECandidate(session_id, recipient_id, candidate) => {
-            match sessions.lock().await.get(&session_id) {
+        Signal::ICECandidate(channel_id, recipient_id, candidate) => {
+            match channels.lock().await.get(&channel_id) {
                 Some(_) => {
                     log::info!(
                         "Got ICECandidate: user_id: {:#?}, session: {:#?}",
                         sender_id,
-                        session_id
+                        channel_id
                     );
                     match users.lock().await.get(&recipient_id) {
                         Some(recipient) => {
-                            let sig_msg = Signal::ICECandidate(session_id, sender_id, candidate);
+                            let sig_msg = Signal::ICECandidate(channel_id, sender_id, candidate);
                             send_signal(&recipient, sig_msg).await?;
                         }
                         None => return Err(format!("can not find user {:?}", recipient_id)),
                     }
                 }
-                None => return Err(format!("can not find session {:?}", session_id)),
+                None => return Err(format!("can not find session {:?}", channel_id)),
             }
         }
         _ => {}

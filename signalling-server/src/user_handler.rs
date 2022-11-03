@@ -5,9 +5,9 @@ use tokio_stream::wrappers::UnboundedReceiverStream;
 use uuid::Uuid;
 use warp::ws::{Message, WebSocket};
 
-use crate::{signal_handler, types::User, Sessions, Users};
+use crate::{signal_handler, types::User, Channels, Users};
 
-pub async fn when_user_connected(ws: WebSocket, users: Users, sessions: Sessions) {
+pub async fn when_user_connected(ws: WebSocket, users: Users, sessions: Channels) {
     let (client_ws_sender, mut client_ws_rcv) = ws.split();
     let (client_sender, client_rcv) = mpsc::unbounded_channel();
     let client_rcv = UnboundedReceiverStream::new(client_rcv);
@@ -20,7 +20,7 @@ pub async fn when_user_connected(ws: WebSocket, users: Users, sessions: Sessions
 
     let user_id = UserId::new(Uuid::new_v4().to_string());
     let user = User {
-        session_id: None,
+        channel_id: None,
         sender: client_sender.clone(),
         user_id: user_id.clone(),
     };

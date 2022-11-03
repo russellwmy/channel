@@ -3,22 +3,22 @@ use std::{
     sync::Arc,
 };
 
-use protocol::{SessionId, UserId};
+use protocol::{ChannelId, UserId};
 use tokio::sync::{mpsc, Mutex};
 use warp::ws::Message;
 
 pub type Users = Arc<Mutex<HashMap<UserId, User>>>;
-pub type Sessions = Arc<Mutex<HashMap<SessionId, Session>>>;
+pub type Channels = Arc<Mutex<HashMap<ChannelId, Channel>>>;
 
 #[derive(Debug)]
-pub struct Session {
-    pub session_id: SessionId,
+pub struct Channel {
+    pub channel_id: ChannelId,
     pub users: HashSet<UserId>,
 }
 
 #[derive(Debug)]
 pub struct User {
     pub sender: mpsc::UnboundedSender<Result<Message, warp::Error>>,
-    pub session_id: Option<SessionId>,
+    pub channel_id: Option<ChannelId>,
     pub user_id: UserId,
 }

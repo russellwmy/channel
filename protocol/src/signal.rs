@@ -1,4 +1,4 @@
-use crate::{SessionId, UserId};
+use crate::{UserId, ChannelId};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Signal {
@@ -6,17 +6,17 @@ pub enum Signal {
     NewUser(UserId),
 
     // Session signal
-    NewSession,
-    SessionCreated(SessionId),
-    JoinSession(SessionId),
-    JoinSessionSuccess(SessionId),
-    JoinSessionError(SessionId),
+    NewChannel,
+    ChannelCreated(ChannelId),
+    JoinChannel(ChannelId),
+    JoinChannelSuccess(ChannelId),
+    JoinChannelError(ChannelId),
 
     // Video offer signal
-    SdpOffer(SessionId, UserId, String),
-    SdpAnswer(SessionId, UserId, String),
-    ICECandidate(SessionId, UserId, String),
-    ICEError(SessionId, String),
+    SdpOffer(ChannelId, UserId, String),
+    SdpAnswer(ChannelId, UserId, String),
+    ICECandidate(ChannelId, UserId, String),
+    ICEError(ChannelId, String),
 
     Debug,
 }

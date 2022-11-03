@@ -1,9 +1,9 @@
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
-pub struct SessionId(String);
+pub struct ChannelId(String);
 
-impl SessionId {
+impl ChannelId {
     pub fn new(inner: String) -> Self {
-        SessionId(inner)
+        ChannelId(inner)
     }
 
     pub fn as_str(&self) -> &str {
@@ -15,8 +15,8 @@ impl SessionId {
     }
 }
 
-impl From<&str> for SessionId {
-    fn from(session_id: &str) -> Self {
-        SessionId(session_id.to_string())
+impl From<&str> for ChannelId {
+    fn from(channel_id: &str) -> Self {
+        ChannelId(channel_id.to_string())
     }
 }
