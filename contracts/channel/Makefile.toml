@@ -1,0 +1,59 @@
+[env]
+RUSTFLAGS = "-C link-arg=-s"
+
+[env.development]
+MAIN_ACCOUNT = "channel.testnet"
+CONTRACT_ID = "user.channel.testnet"
+
+
+[tasks.format]
+install_crate = "rustfmt"
+toolchain = "nightly"
+command = "cargo"
+args = ["fmt", "--", "--emit=files"]
+
+[tasks.clean]
+command = "cargo"
+args = ["clean"]
+
+[tasks.clean-release]
+command = "cargo"
+args = ["clean", "--target-dir", "dist"]
+dependencies = ["clean"]
+
+[tasks.build]
+command = "cargo"
+args = ["build", "--target", "wasm32-unknown-unknown", "--release"]
+dependencies = ["format"]
+
+[tasks.release-contract]
+script = [
+    """
+    mkdir -p ./dist && cp target/wasm32-unknown-unknown/release/*.wasm dist/contract.wasm
+    """,
+]
+dependencies = ["clean-release", "build"]
+
+[tasks.deploy-contract]
+condition = { profiles = ["development"] }
+script = [
+    "near deploy -f --accountId $CONTRACT_ID --wasmFile dist/contract.wasm",
+]
+dependencies = ["release-contract"]
+
+[tasks.init-contract]
+condition = { profiles = ["development"] }
+script = [
+    "near call $CONTRACT_ID new '{\"owner_id\": \"'$MAIN_ACCOUNT'\"}' --accountId $CONTRACT_ID",
+]
+[tasks.delete-contract-account]
+condition = { profiles = ["development"] }
+script = [
+    "near delete $CONTRACT_ID $MAIN_ACCOUNT",
+]
+
+[tasks.create-contract-account]
+condition = { profiles = ["development"] }
+script = [
+    "near create-account $CONTRACT_ID --masterAccount $MAIN_ACCOUNT --initialBalance 10",
+]

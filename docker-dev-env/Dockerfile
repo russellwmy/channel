@@ -13,7 +13,7 @@ RUN /bin/bash -c " \
 
 ENV PATH /opt/node-v16.17.1-linux-x64/bin:$PATH
 
-RUN /bin/bash -c "npm install --global yarn"
+RUN /bin/bash -c "npm install --global yarn near-cli"
 
 ARG UNAME=user
 ARG UID=1000
@@ -56,7 +56,7 @@ RUN /bin/bash -c "\
     
 ENV PATH /home/user/bin:$PATH
 
-
+RUN rustup install nightly
 
 CMD exec /bin/bash -c "trap : TERM INT; sleep infinity & wait"
 
