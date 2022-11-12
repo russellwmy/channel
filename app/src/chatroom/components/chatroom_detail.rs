@@ -15,11 +15,11 @@ pub fn ChatroomDetail(cx: Scope) -> Element {
                 div {
                     class: "flex flex-1 flex-col items-stretch relative",
                     div {
-                        class: "items-center justify-between border-b-2 border-gray-100 p-4 md:space-x-10",
+                        class: " sticky top-0 items-center justify-between border-b-2 border-gray-100 p-5 md:space-x-10",
                         h2 {"{chatroom.name}"}
                     }
                     div {
-                        class: "flex flex-col items-center pt-10",
+                        class: "flex h-full flex-col items-center pt-10 bg-orange-50",
                         chatroom.user.clone().into_iter().map(|(_, user)| rsx!(
                             ChatroomUserCard {
                                 address: user.address.to_owned(),

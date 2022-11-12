@@ -20,7 +20,7 @@ pub fn ChatroomListCard<'a>(cx: Scope<'a, ChatroomListCardProps<'a>>) -> Element
             button {
                 onclick: move |evt| cx.props.onclick.call(evt),
                 class: "items-center flex w-full justify-between border-b-2 border-gray-100 p-4 md:space-x-10 {bg_color} ",
-                h2 { "{cx.props.title}"}
+                h4 { "{cx.props.title}"}
                 h4 { "{cx.props.id}"}
             }
         }

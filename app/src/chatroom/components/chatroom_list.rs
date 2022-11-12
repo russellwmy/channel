@@ -5,6 +5,7 @@ use dioxus::prelude::*;
 use crate::{
     chatroom::{components::ChatroomListCard, types::NewChatroom, CHATROOM},
     temp::components::TempCreateForm,
+    wallet::components::NearConnectButton,
 };
 
 pub fn ChatroomList(cx: Scope) -> Element {
@@ -33,6 +34,11 @@ pub fn ChatroomList(cx: Scope) -> Element {
     cx.render(rsx! (
         div {
             // class: "relative items-stretch",
+            div {
+                class: "flex flex-row items-center justify-between border-b-2 border-gray-100 py-2 px-4 md:space-x-10 sticky top-0",
+                h1 { "Channel" }
+                NearConnectButton{}
+            }
             div {
                 name_list
             }

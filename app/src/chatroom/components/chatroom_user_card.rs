@@ -17,7 +17,7 @@ pub fn ChatroomUserCard(cx: Scope<ChatroomUserCardProps>) -> Element {
     };
     let view = rsx! {
         div {
-            class: "flex flex-col justify-end w-3/4 h-60 rounded-2xl p-2 m-2 {bg_color} ",
+            class: "flex flex-col justify-end w-3/4 aspect-video rounded-2xl p-2 m-2 {bg_color} ",
             div {
                 class: "flex justify-between",
                 div {
