@@ -7,11 +7,15 @@ extern crate serde_derive;
 use dioxus::{prelude::*, router::Router};
 
 mod app;
+mod chatroom;
+mod components;
 mod config;
+mod constant;
 mod home;
 mod mic_check;
 mod recorder;
 mod routes;
+mod temp;
 mod wallet;
 
 use routes::Routes;
