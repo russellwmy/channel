@@ -1,7 +1,8 @@
 use dioxus::prelude::*;
 
 use crate::{
-    chatroom::{components::ChatroomUserCard, CHATROOM},
+    chatroom::CHATROOM,
+    // chatroom::{components::ChatroomUserCard, CHATROOM},
     components::Icon,
 };
 
@@ -18,16 +19,16 @@ pub fn ChatroomDetail(cx: Scope) -> Element {
                         class: " sticky top-0 items-center justify-between border-b-2 border-gray-100 p-5 md:space-x-10",
                         h2 {"{chatroom.name}"}
                     }
-                    div {
-                        class: "flex h-full flex-col items-center pt-10 bg-orange-50",
-                        chatroom.user.clone().into_iter().map(|(_, user)| rsx!(
-                            ChatroomUserCard {
-                                address: user.address.to_owned(),
-                                key: "{user.address}",
-                                muted: user.muted,
-                            }
-                        )) 
-                    }
+                    // div {
+                    //     class: "flex h-full flex-col items-center pt-10 bg-orange-50",
+                    //     chatroom.user.clone().into_iter().map(|(_, user)| rsx!(
+                    //         ChatroomUserCard {
+                    //             address: user.address.to_owned(),
+                    //             key: "{user.address}",
+                    //             muted: user.muted,
+                    //         }
+                    //     )) 
+                    // }
                     div {
                         class: "fixed bottom-0 flex self-center p-4",
                         div {

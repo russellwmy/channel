@@ -16,6 +16,7 @@ mod mic_check;
 mod recorder;
 mod routes;
 mod temp;
+mod user;
 mod wallet;
 
 use routes::Routes;
