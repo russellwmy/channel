@@ -24,6 +24,7 @@ features = [
   "BinaryType",
   "ErrorEvent",
   "MediaStream",
+  "RtcConfiguration",
   "RtcPeerConnection",
   "WebSocket",
   "MediaStreamConstraints",
@@ -36,5 +37,9 @@ features = [
   "RtcIceCandidateInit",
   "RtcPeerConnectionIceEvent",
   "RtcSdpType",
+  "RtcIceServer",
   "RtcSessionDescriptionInit",
+  "RtcDataChannel",
+  "RtcDataChannelEvent",
+  "MessageEvent",
 ]

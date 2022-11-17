@@ -13,7 +13,3 @@ serde_json = "1.0.87"
 tokio = { version = "1", features = ["full"] }
 warp = "0.3"
 tokio-stream = "0.1.11"
-
-[dependencies.uuid]
-version = "1.2.1"
-features = ["v4", "fast-rng"]

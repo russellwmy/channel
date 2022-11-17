@@ -1,28 +1,37 @@
-use std::{collections::HashMap, convert::Infallible, env, sync::Arc};
+use std::{
+    collections::{HashMap, HashSet},
+    convert::Infallible,
+    env,
+    sync::Arc,
+};
 
+use protocol::RoomId;
 use tokio::sync::Mutex;
-use types::{Channels, Users};
+use types::{Participants, Room, Rooms};
 use warp::{Filter, Rejection, Reply};
+
+mod participant_handler;
 mod signal_handler;
 mod types;
-mod user_handler;
 
 pub async fn ws_handler(
     ws: warp::ws::Ws,
-    users: Users,
-    channels: Channels,
+    participants: Participants,
+    rooms: Rooms,
 ) -> Result<impl Reply, Rejection> {
-    Ok(ws.on_upgrade(move |socket| user_handler::when_user_connected(socket, users, channels)))
+    Ok(ws.on_upgrade(move |socket| {
+        participant_handler::when_participant_connected(socket, participants, rooms)
+    }))
 }
 
-fn with_users(users: Users) -> impl Filter<Extract = (Users,), Error = Infallible> + Clone {
-    warp::any().map(move || users.clone())
+fn with_participants(
+    participants: Participants,
+) -> impl Filter<Extract = (Participants,), Error = Infallible> + Clone {
+    warp::any().map(move || participants.clone())
 }
 
-fn with_channels(
-    channels: Channels,
-) -> impl Filter<Extract = (Channels,), Error = Infallible> + Clone {
-    warp::any().map(move || channels.clone())
+fn with_rooms(rooms: Rooms) -> impl Filter<Extract = (Rooms,), Error = Infallible> + Clone {
+    warp::any().map(move || rooms.clone())
 }
 
 #[tokio::main]
@@ -37,13 +46,26 @@ async fn main() {
     };
     pretty_env_logger::init();
 
-    let users: Users = Arc::new(Mutex::new(HashMap::new()));
-    let channels: Channels = Arc::new(Mutex::new(HashMap::new()));
+    let participants: Participants = Arc::new(Mutex::new(HashMap::new()));
 
+    let mut room_data = HashMap::new();
+    let default_room_id = RoomId::new();
+
+    log::info!("Default channel: {:?}", default_room_id);
+
+    room_data.insert(
+        default_room_id.clone(),
+        Room {
+            id: default_room_id.clone(),
+            participants: HashSet::new(),
+        },
+    );
+
+    let rooms: Rooms = Arc::new(Mutex::new(room_data));
     let ws_route = warp::any()
         .and(warp::ws())
-        .and(with_users(users.clone()))
-        .and(with_channels(channels.clone()))
+        .and(with_participants(participants.clone()))
+        .and(with_rooms(rooms.clone()))
         .and_then(ws_handler);
 
     warp::serve(ws_route).run(([127, 0, 0, 1], port)).await;

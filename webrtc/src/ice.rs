@@ -1,16 +1,9 @@
+use futures::channel::oneshot;
 use js_sys::JSON;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::{closure::Closure, JsCast, JsValue, UnwrapThrowExt};
 use wasm_bindgen_futures::JsFuture;
-use web_sys::{
-    RtcIceCandidate,
-    RtcIceCandidateInit,
-    RtcPeerConnection,
-    RtcPeerConnectionIceEvent,
-    WebSocket,
-};
-
-use crate::{session::Session, signalling};
+use web_sys::{RtcIceCandidate, RtcIceCandidateInit, RtcPeerConnection, RtcPeerConnectionIceEvent};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -20,50 +13,25 @@ pub struct IceCandidate {
     pub sdp_m_line_index: u16,
 }
 
-pub fn sleep(ms: i32) -> js_sys::Promise {
-    js_sys::Promise::new(&mut |resolve, _| {
-        web_sys::window()
-            .unwrap()
-            .set_timeout_with_callback_and_timeout_and_arguments_0(&resolve, ms)
-            .unwrap();
-    })
-}
+pub async fn create_connection(connection: RtcPeerConnection) -> String {
+    let (tx, rx) = oneshot::channel();
+    let mut tx_opt = Some(tx);
 
-pub async fn when_ice_candiate_callback(
-    ws: WebSocket,
-    peer: RtcPeerConnection,
-    session: Session,
-) -> Result<RtcPeerConnection, JsValue> {
-    let onicecandidate_callback = Closure::wrap(Box::new(move |event: RtcPeerConnectionIceEvent| {
-        let ws = ws.clone();
+    let on_callback = Closure::<dyn FnMut(_)>::new(move |e: RtcPeerConnectionIceEvent| {
+        let data = e.candidate().unwrap();
+        let candidate = data.to_json();
+        let result = JSON::stringify(&candidate).unwrap_throw();
+        let _ = tx_opt.take().unwrap().send(result.into());
+    });
+    connection.set_onicecandidate(Some(on_callback.as_ref().unchecked_ref()));
+    on_callback.forget();
 
-        send_ice_candidate(ws, state, event);
-    })
-        as Box<dyn FnMut(RtcPeerConnectionIceEvent)>);
-    peer.set_onicecandidate(Some(onicecandidate_callback.as_ref().unchecked_ref()));
-    onicecandidate_callback.forget();
-    Ok(peer)
-}
-
-pub fn send_ice_candidate(ws: WebSocket, session: Session, event: RtcPeerConnectionIceEvent) {
-    match event.candidate() {
-        Some(candidate) => {
-            let candidate_object = candidate.to_json();
-            let candidate_string = JSON::stringify(&candidate_object).unwrap_throw();
-            let result = String::from(candidate_string.clone());
-            let ws = ws.clone();
-
-            signalling::send_ice_candidate(ws, state.session_id, state.user_id, result);
-        }
-        None => {
-            log::info!("No ICE candidate in RtcPeerConnectionIceEvent");
-        }
-    }
+    rx.await.unwrap()
 }
 
 pub async fn process_new_ice_candidate(
+    rtc_connection: RtcPeerConnection,
     candidate: String,
-    peer: RtcPeerConnection,
 ) -> Result<(), JsValue> {
     log::warn!("ICECandidate Received! {}", candidate);
 
@@ -79,8 +47,10 @@ pub async fn process_new_ice_candidate(
 
     match RtcIceCandidate::new(&new_ice_candidate_init) {
         Ok(x) => {
-            let result =
-                JsFuture::from(peer.add_ice_candidate_with_opt_rtc_ice_candidate(Some(&x))).await?;
+            let result = JsFuture::from(
+                rtc_connection.add_ice_candidate_with_opt_rtc_ice_candidate(Some(&x)),
+            )
+            .await?;
             log::info!("Added other peer's Ice Candidate ! {:?}", result);
         }
         Err(e) => {

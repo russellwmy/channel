@@ -7,6 +7,7 @@ extern crate serde_derive;
 use dioxus::{prelude::*, router::Router};
 
 mod app;
+mod chat;
 mod config;
 mod home;
 mod mic_check;

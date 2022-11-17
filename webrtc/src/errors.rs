@@ -38,7 +38,7 @@ pub enum MediaStreamError {
 
 #[allow(clippy::module_name_repetitions)]
 #[derive(Error, Debug, Clone)]
-pub enum SessionError {
+pub enum ClientError {
     #[error("Could not initialize")]
     InitializeError,
     #[error("Cloud not connect to server")]

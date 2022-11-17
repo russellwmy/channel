@@ -1,36 +1,39 @@
-use protocol::{ChannelId, Signal, UserId};
-use uuid::Uuid;
+use protocol::{ParticipantId, RoomId, Signal};
 use warp::ws::Message;
 
-use crate::types::{Channel, Channels, User, Users};
+use crate::types::{Participant, Participants, Room, Rooms};
 
-pub async fn send_signal(user: &User, signal: Signal) -> Result<(), String> {
-    log::info!("Sending to user: {:#?} signal: {:#?}", user.user_id, signal);
+pub async fn send_signal(participant: &Participant, signal: Signal) -> Result<(), String> {
+    log::info!(
+        "Sending to user: {:#?} signal: {:#?}",
+        participant.id,
+        signal
+    );
     let message = match serde_json::to_string(&signal) {
         Ok(msg) => msg,
         Err(_) => return Err(format!("can not serialize signal: {:?}", signal)),
     };
 
-    match user.sender.send(Ok(Message::text(message))) {
+    match participant.sender.send(Ok(Message::text(message))) {
         Ok(()) => Ok(()),
         Err(e) => Err(e.to_string()),
     }
 }
 
 pub async fn when_signal_recieved(
-    sender_id: UserId,
-    msg: Message,
-    users: Users,
-    channels: Channels,
+    sender_id: ParticipantId,
+    message: Message,
+    participants: Participants,
+    rooms: Rooms,
 ) -> Result<(), String> {
-    let msg = match msg.to_str() {
+    let message = match message.to_str() {
         Ok(m) => m,
         Err(_) => {
             return Err("message is not a str".to_string());
         }
     };
 
-    let result: Signal = match serde_json::from_str(&msg) {
+    let result: Signal = match serde_json::from_str(&message) {
         Ok(x) => x,
         Err(e) => {
             return Err(e.to_string());
@@ -40,94 +43,110 @@ pub async fn when_signal_recieved(
     log::info!("Handling signal: {:#?}", result);
 
     match result {
-        Signal::NewChannel => {
-            let channel_id = ChannelId::new(Uuid::new_v4().to_string());
-            log::info!("Created new session: {:?}", channel_id);
+        Signal::CreateRoom => {
+            let room_id = RoomId::new();
+            log::info!("Created new room: {:?}", room_id);
 
-            channels
-                .lock()
-                .await
-                .entry(channel_id.clone())
-                .or_insert(Channel {
-                    channel_id: channel_id.clone(),
-                    users: Default::default(),
-                });
+            rooms.lock().await.entry(room_id.clone()).or_insert(Room {
+                id: room_id.clone(),
+                participants: Default::default(),
+            });
 
-            match users.lock().await.get_mut(&sender_id) {
-                Some(user) => {
-                    user.channel_id = Some(channel_id.clone());
-                    let sig_msg = Signal::ChannelCreated(channel_id.clone());
-                    send_signal(&user, sig_msg).await?;
+            match participants.lock().await.get_mut(&sender_id) {
+                Some(participant) => {
+                    participant.room_id = Some(room_id.clone());
+                    let sig_msg = Signal::RoomCreated(room_id.clone());
+
+                    send_signal(&participant, sig_msg).await?;
                 }
                 None => return Err(format!("can not find user {:?}", sender_id)),
             }
         }
 
-        Signal::JoinChannel(channel_id) => match channels.lock().await.get_mut(&channel_id) {
-            Some(session) => {
-                session.users.insert(sender_id.clone());
-                match users.lock().await.get_mut(&sender_id) {
-                    Some(user) => {
-                        let sig_msg = Signal::JoinChannelSuccess(channel_id);
-                        send_signal(&user, sig_msg).await?;
+        Signal::JoinRoom(room_id) => match rooms.lock().await.get_mut(&room_id) {
+            Some(room) => {
+                room.participants.insert(sender_id.clone());
+                let mut others = room.participants.clone();
+                others.remove(&sender_id);
+
+                match participants.lock().await.get_mut(&sender_id) {
+                    Some(sender) => {
+                        let sig_msg = Signal::JoinRoomSuccess(room_id.clone());
+                        send_signal(&sender, sig_msg).await?;
+
+                        for participant_id in others.clone() {
+                            let sig_msg = Signal::NewParticipantJoined(
+                                room_id.clone(),
+                                participant_id.clone(),
+                            );
+                            send_signal(&sender, sig_msg).await?;
+                        }
                     }
                     None => return Err(format!("can not find user {:?}", sender_id)),
                 }
+
+                for participant_id in others.clone() {
+                    match participants.lock().await.get_mut(&participant_id) {
+                        Some(participant) => {
+                            let sig_msg =
+                                Signal::NewParticipantJoined(room_id.clone(), sender_id.clone());
+                            send_signal(&participant, sig_msg).await?;
+                        }
+                        None => {}
+                    }
+                }
             }
-            None => match users.lock().await.get(&sender_id) {
+            None => match participants.lock().await.get(&sender_id) {
                 Some(user) => {
-                    let sig_msg = Signal::JoinChannelError(channel_id);
+                    let sig_msg = Signal::JoinRoomError(room_id);
                     send_signal(&user, sig_msg).await?;
                 }
                 None => return Err(format!("can not find user {:?}", sender_id)),
             },
         },
 
-        Signal::SdpOffer(channel_id, recipient_id, offer) => {
-            match channels.lock().await.get(&channel_id) {
-                Some(_) => match users.lock().await.get(&recipient_id) {
-                    Some(recipient) => {
-                        let sig_msg = Signal::SdpOffer(channel_id, sender_id, offer);
-
-                        send_signal(&recipient, sig_msg).await?;
+        Signal::SdpOffer(room_id, participant_id, offer) => {
+            match rooms.lock().await.get(&room_id) {
+                Some(_) => match participants.lock().await.get_mut(&participant_id) {
+                    Some(participant) => {
+                        let sig_msg =
+                            Signal::SdpOffer(room_id.clone(), sender_id.clone(), offer.clone());
+                        send_signal(&participant, sig_msg).await?;
                     }
-                    None => return Err(format!("can not find user {:?}", recipient_id)),
+                    None => {}
                 },
-
-                None => return Err(format!("can not find session {:?}", channel_id)),
+                None => return Err(format!("can not find room {:?}", room_id)),
             }
         }
 
-        Signal::SdpAnswer(channel_id, recipient_id, offer) => {
-            match channels.lock().await.get(&channel_id) {
-                Some(_) => match users.lock().await.get(&recipient_id) {
-                    Some(recipient) => {
-                        let sig_msg = Signal::SdpAnswer(channel_id, sender_id, offer);
-                        send_signal(&recipient, sig_msg).await?;
+        Signal::SdpAnswer(room_id, participant_id, offer) => {
+            match rooms.lock().await.get(&room_id) {
+                Some(_) => match participants.lock().await.get_mut(&participant_id) {
+                    Some(participant) => {
+                        let sig_msg =
+                            Signal::SdpAnswer(room_id.clone(), sender_id.clone(), offer.clone());
+                        send_signal(&participant, sig_msg).await?;
                     }
-                    None => return Err(format!("can not find user {:?}", recipient_id)),
+                    None => {}
                 },
-                None => return Err(format!("can not find session {:?}", channel_id)),
+                None => return Err(format!("can not find room {:?}", room_id)),
             }
         }
 
-        Signal::ICECandidate(channel_id, recipient_id, candidate) => {
-            match channels.lock().await.get(&channel_id) {
-                Some(_) => {
-                    log::info!(
-                        "Got ICECandidate: user_id: {:#?}, session: {:#?}",
-                        sender_id,
-                        channel_id
-                    );
-                    match users.lock().await.get(&recipient_id) {
-                        Some(recipient) => {
-                            let sig_msg = Signal::ICECandidate(channel_id, sender_id, candidate);
-                            send_signal(&recipient, sig_msg).await?;
-                        }
-                        None => return Err(format!("can not find user {:?}", recipient_id)),
+        Signal::ICECandidate(room_id, participant_id, candidate) => {
+            match rooms.lock().await.get(&room_id) {
+                Some(_) => match participants.lock().await.get_mut(&participant_id) {
+                    Some(user) => {
+                        let sig_msg = Signal::ICECandidate(
+                            room_id.clone(),
+                            sender_id.clone(),
+                            candidate.clone(),
+                        );
+                        send_signal(&user, sig_msg).await?;
                     }
-                }
-                None => return Err(format!("can not find session {:?}", channel_id)),
+                    None => {}
+                },
+                None => return Err(format!("can not find room {:?}", room_id)),
             }
         }
         _ => {}
