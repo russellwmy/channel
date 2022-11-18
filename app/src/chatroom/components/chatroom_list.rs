@@ -8,9 +8,10 @@ use crate::{
         types::NewChatroom,
         CHATROOM,
     },
+    errors::ContractCallError,
     temp::components::TempCreateForm,
     user::{components::CreateUserButton, functions::get_user_info, types::GetUserInfoInput, USER},
-    wallet::{components::NearConnectButton, WALLET}, errors::{ContractCallError},
+    wallet::{components::NearConnectButton, WALLET},
 };
 #[derive(Debug)]
 enum Version {
@@ -55,7 +56,9 @@ pub fn ChatroomList(cx: Scope) -> Element {
                 let result = get_user_info(wallet_clone, GetUserInfoInput { account_id }).await;
                 result.map_err(|e| ContractCallError::CallFail(e.to_string()))
             }
-            _ => Err(ContractCallError::InputError("missing account id".to_string()))
+            _ => Err(ContractCallError::InputError(
+                "missing account id".to_string(),
+            )),
         }
     });
 

@@ -11,6 +11,7 @@ mod chatroom;
 mod components;
 mod config;
 mod constant;
+mod errors;
 mod home;
 mod mic_check;
 mod recorder;
@@ -18,7 +19,6 @@ mod routes;
 mod temp;
 mod user;
 mod wallet;
-mod errors;
 
 use routes::Routes;
 

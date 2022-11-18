@@ -3,7 +3,7 @@ RUSTFLAGS = "-C link-arg=-s"
 
 [env.development]
 MAIN_ACCOUNT = "channel.testnet"
-CONTRACT_ID = "user.channel.testnet"
+CONTRACT_ID = "group.channel.testnet"
 
 
 [tasks.format]
