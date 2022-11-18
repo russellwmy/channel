@@ -15,7 +15,7 @@ dependencies = ["clean"]
 
 [tasks.dev]
 command = "trunk"
-args = ["serve"]
+args = ["serve", "--proxy-backend=ws://localhost:9000/", "--proxy-ws=/ws/"]
 dependencies = ["format"]
 
 [tasks.release]

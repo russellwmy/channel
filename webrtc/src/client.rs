@@ -1,11 +1,12 @@
-use std::{cell::RefCell, rc::Rc, str::FromStr};
+use std::{borrow::BorrowMut, cell::RefCell, rc::Rc, str::FromStr};
 
 use protocol::{RoomId, Signal};
 use wasm_bindgen::{prelude::Closure, JsCast};
+use wasm_bindgen_futures::spawn_local;
 use web_sys::{MessageEvent, WebSocket};
 
 use crate::{
-    local_participant::LocalParticipant,
+    local_participant::{self, LocalParticipant},
     participant::Participant,
     room::Room,
     sdp,
@@ -38,6 +39,12 @@ impl Client {
         self.is_connected
     }
 
+    pub fn set_local_participant(&mut self, local_participant: LocalParticipant) {
+        let rc_room = Rc::clone(&self.room);
+        let mut room = (*rc_room).borrow_mut();
+        room.set_local_participant(local_participant);
+    }
+
     pub fn room(&self) -> Room {
         let rc_room = (*self).room.clone();
         let room = (*rc_room).borrow();
@@ -46,11 +53,14 @@ impl Client {
     }
 
     pub async fn connect(&mut self, url: &str) {
-        let mut rc_room = (*self).room.borrow_mut();
+        let rc_room = Rc::clone(&self.room);
+        let mut room = (*rc_room).borrow_mut();
         let (ws, participant_id) = signaling::connect_server(url).await.unwrap();
-        let local_participant = LocalParticipant::new_with_id(participant_id);
+        let mut local_participant = LocalParticipant::new_with_id(participant_id);
 
-        rc_room.set_local_participant(local_participant);
+        let _ = local_participant.start_stream().await;
+        room.set_local_participant(local_participant);
+
         self.ws = Some(ws);
         self.is_connected = true;
         self.init();
@@ -62,6 +72,15 @@ impl Client {
     }
 
     pub fn join_room(&mut self, room_id: &str) {
+        // let rc_room = Rc::clone(&self.room);
+
+        // spawn_local(async move {
+        //     let mut room = (*rc_room).borrow_mut();
+        //     let mut local_participant = room.local_participant().unwrap();
+        //     let _ = local_participant.borrow_mut().start_stream().await;
+
+        //     room.set_local_participant(local_participant);
+        // });
         let cloned_ws = self.ws.clone().unwrap();
         signaling::join_room(cloned_ws, RoomId::from_str(room_id).unwrap());
     }
@@ -72,7 +91,7 @@ impl Client {
 
     fn init(&self) {
         let ws = self.ws.clone().unwrap();
-        let rc_room = (*self).room.clone();
+        let rc_room = Rc::clone(&self.room);
         let rc_handler = (*self).handler.clone();
 
         let ws_ex = ws.clone();
@@ -89,16 +108,19 @@ impl Client {
                     let mut room = (*rc_room).borrow_mut();
                     let local_participant = room.clone().local_participant();
                     let ws = ws_ex.clone();
-                    let cloned_local_participant= local_participant.clone();
+                    let cloned_local_participant = local_participant.clone();
 
                     if local_participant.is_some()
                         && local_participant.unwrap().id() != participant_id
                     {
                         log::info!("Received NewParticipantJoined");
+                        let local_participant_ex = cloned_local_participant.unwrap();
+                        let stream = local_participant_ex.stream().unwrap();
                         let participant =
                             Participant::new(participant_id.clone(), room_id.clone(), ws.clone());
 
-                        if cloned_local_participant.unwrap().id() < participant_id {
+                        participant.publish(stream.clone());
+                        if local_participant_ex.id() < participant_id {
                             participant.create_and_send_offer()
                         }
 

@@ -4,13 +4,15 @@ use wasm_bindgen::{prelude::*, JsCast};
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{
     MediaStream,
+    MediaStreamTrack,
     RtcDataChannel,
     RtcPeerConnection,
     RtcPeerConnectionIceEvent,
+    RtcTrackEvent,
     WebSocket,
 };
 
-use crate::{ice, sdp, signaling};
+use crate::{dom, ice, sdp, signaling};
 
 #[derive(Debug, Clone)]
 pub struct Participant {
@@ -19,14 +21,11 @@ pub struct Participant {
     ws: WebSocket,
     streams: Vec<MediaStream>,
     connection: RtcPeerConnection,
-    channel: RtcDataChannel,
 }
 
 impl Participant {
     pub fn new(id: ParticipantId, room_id: RoomId, ws: WebSocket) -> Self {
         let connection = RtcPeerConnection::new().unwrap();
-        let channel = connection.create_data_channel(id.to_string().as_str());
-
         let cloned_ws = ws.clone();
         let cloned_room_id = room_id.clone();
         let cloned_id = id.clone();
@@ -51,13 +50,21 @@ impl Participant {
         connection.set_onicecandidate(Some(onicecandidate_callback.as_ref().unchecked_ref()));
         onicecandidate_callback.forget();
 
+        let ontrack_callback = Closure::<dyn FnMut(RtcTrackEvent)>::new(move |e: RtcTrackEvent| {
+            log::info!("ontrack");
+            for stream in e.streams().iter() {
+                dom::attach_stream(stream.into());
+            }
+        });
+        connection.set_ontrack(Some(ontrack_callback.as_ref().unchecked_ref()));
+        ontrack_callback.forget();
+
         Self {
             id,
             connection,
             ws,
             room_id,
             streams: vec![],
-            channel,
         }
     }
 
@@ -67,6 +74,14 @@ impl Participant {
 
     pub fn connection(&self) -> RtcPeerConnection {
         self.connection.clone()
+    }
+
+    pub fn publish(&self, stream: MediaStream) {
+        for track in stream.get_tracks().iter() {
+            let track = track.dyn_into::<MediaStreamTrack>().unwrap();
+            log::info!("{}", track.id());
+            self.connection.add_track_0(&track, &stream);
+        }
     }
 
     pub fn create_and_send_offer(&self) {

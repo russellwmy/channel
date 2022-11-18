@@ -99,3 +99,11 @@ pub fn media_devices(navigator: &Navigator) -> Result<MediaDevices, MediaStreamE
         }),
     }
 }
+
+pub fn get_contraints(video: bool, audio: bool) -> MediaStreamConstraints {
+    let mut constraints = MediaStreamConstraints::new();
+    constraints.video(&JsValue::from_bool(video));
+    constraints.audio(&JsValue::from_bool(audio));
+
+    constraints
+}
