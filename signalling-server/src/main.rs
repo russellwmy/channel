@@ -2,6 +2,7 @@ use std::{
     collections::{HashMap, HashSet},
     convert::Infallible,
     env,
+    str::FromStr,
     sync::Arc,
 };
 
@@ -49,7 +50,7 @@ async fn main() {
     let participants: Participants = Arc::new(Mutex::new(HashMap::new()));
 
     let mut room_data = HashMap::new();
-    let default_room_id = RoomId::new();
+    let default_room_id = RoomId::from_str("7c50f4d3-30ad-4aab-886d-a27c6f5c804f").unwrap();
 
     log::info!("Default channel: {:?}", default_room_id);
 
