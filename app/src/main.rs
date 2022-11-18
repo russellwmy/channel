@@ -18,6 +18,7 @@ mod routes;
 mod temp;
 mod user;
 mod wallet;
+mod errors;
 
 use routes::Routes;
 

@@ -4,7 +4,7 @@ use uuid::Uuid;
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SetGroupInput {
     pub uuid: String,
-    pub name: String
+    pub name: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

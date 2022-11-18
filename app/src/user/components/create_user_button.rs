@@ -1,5 +1,4 @@
-use dioxus::prelude::*;
-use dioxus::hooks::use_effect;
+use dioxus::{hooks::use_effect, prelude::*};
 use log::info;
 
 use crate::{
@@ -9,7 +8,6 @@ use crate::{
     },
     wallet::WALLET,
 };
-
 
 pub fn CreateUserButton(cx: Scope) -> Element {
     let wallet_state = use_atom_ref(&cx, WALLET);

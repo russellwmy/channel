@@ -1,23 +1,16 @@
 use std::collections::HashMap;
 
 use dioxus::prelude::*;
-use log::info;
 
 use crate::{
     chatroom::{
-        components::{ChatroomListCard, NewChatroomModal}, 
-        types::NewChatroom, 
-        functions::get_groups_debug,
-        CHATROOM
+        components::{ChatroomListCard, NewChatroomModal},
+        types::NewChatroom,
+        CHATROOM,
     },
     temp::components::TempCreateForm,
-    user::{
-        components::CreateUserButton,
-        types::{GetUserInfoInput, NewUserInput},
-        functions::get_user_info,
-        USER,
-    },
-    wallet::{components::NearConnectButton, WALLET},
+    user::{components::CreateUserButton, functions::get_user_info, types::GetUserInfoInput, USER},
+    wallet::{components::NearConnectButton, WALLET}, errors::{ContractCallError},
 };
 #[derive(Debug)]
 enum Version {
@@ -56,39 +49,23 @@ pub fn ChatroomList(cx: Scope) -> Element {
             }
         })
     });
-
-    use_effect(&cx, (), |_| async move {
-        // cx.spawn({
-        //     async move {
-                if let Some(account_id) = account_clone {
-
-                    let result = get_user_info(
-                        wallet_clone,
-                        GetUserInfoInput {
-                            account_id: account_id,
-                        },
-                    ).await;
-
-                    match result {
-                        Ok(v) => {
-                            user_state.write().set_info(v);
-                            info!("result detail:");
-                        },
-                        Err(e) => info!("error "),
-                    }
-                }
-
-                // let groups = get_groups_debug(wallet.clone()).await;
-
-                // match groups {
-                //     Ok(v) => {
-                //         info!("sucess groups");
-                //     },
-                //     Err(e) => info!("error {}", e),
-                // }
-        //     }
-        // });
+    let user_info_fut = use_future(&cx, (), |_| async move {
+        match account_clone {
+            Some(account_id) => {
+                let result = get_user_info(wallet_clone, GetUserInfoInput { account_id }).await;
+                result.map_err(|e| ContractCallError::CallFail(e.to_string()))
+            }
+            _ => Err(ContractCallError::InputError("missing account id".to_string()))
+        }
     });
+
+    match user_info_fut.value() {
+        Some(Ok(val)) => {
+            user_state.write().set_info(val.clone());
+        }
+        Some(Err(err)) => log::error!("{}", err),
+        None => log::info!("loading"),
+    };
 
     cx.render(rsx! (
         div {
@@ -121,7 +98,6 @@ pub fn ChatroomList(cx: Scope) -> Element {
             div {
                 name_list
             }
-            
             div {
                 // class: "fixed bottom-40 right-0 p-2 items-center",
                 class: "p-2 flex justify-around",

@@ -1,17 +1,11 @@
 use dioxus::{events::MouseEvent, prelude::*};
 use log::info;
-use crate::{
-    wallet::WALLET,
-    chatroom::{
-        functions::set_group
-    },
-};
 
+use crate::{chatroom::functions::set_group, wallet::WALLET};
 
 pub fn NewChatroomModal(cx: Scope) -> Element {
     let wallet_state = use_atom_ref(&cx, WALLET);
     let wallet = wallet_state.read().wallet();
-
 
     let is_modal_visible = use_state(&cx, || false);
     // let name = use_state(&cx, || "".to_string());
@@ -21,7 +15,7 @@ pub fn NewChatroomModal(cx: Scope) -> Element {
             class: "absolute",
             button {
                 onclick: move |_| { is_modal_visible.set(!is_modal_visible) },
-                class: " btn primary normal-case", 
+                class: " btn primary normal-case",
                 i {
                    class: "fa-solid fa-plus"
                 }
@@ -37,19 +31,19 @@ pub fn NewChatroomModal(cx: Scope) -> Element {
                         // name: "name",
                         class:"input w-full m-3",
                         // placeholder:"Type here"  ,
-            
+
                         // oninput: move |evt| name.set(evt.value.clone()),
                     }
                     button {
-                        class: " btn primary normal-case m-3", 
+                        class: " btn primary normal-case m-3",
                         onclick: move |_| { is_modal_visible.set(!is_modal_visible) },
 
                         h1 {"Close"}
                     }
 
                     button {
-                        class: " btn primary normal-case m-3", 
-                        onclick: move |_| { 
+                        class: " btn primary normal-case m-3",
+                        onclick: move |_| {
                             let wallet_clone = wallet.clone();
                             cx.spawn({
                                 async move {

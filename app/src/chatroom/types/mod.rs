@@ -1,7 +1,7 @@
 mod chatroom;
-mod set_group_input;
 mod group;
+mod set_group_input;
 
 pub use chatroom::{ChatroomCard, ChatroomUser, NewChatroom};
-pub use set_group_input::SetGroupInput;
 pub use group::GROUP;
+pub use set_group_input::SetGroupInput;
