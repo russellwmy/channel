@@ -8,11 +8,17 @@ use dioxus::{prelude::*, router::Router};
 
 mod app;
 mod chat;
+mod chatroom;
+mod components;
 mod config;
+mod constant;
+mod errors;
 mod home;
 mod mic_check;
 mod routes;
 mod rtc;
+mod temp;
+mod user;
 mod wallet;
 
 use routes::Routes;
