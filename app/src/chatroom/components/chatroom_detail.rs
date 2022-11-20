@@ -2,13 +2,16 @@ use dioxus::prelude::*;
 
 use crate::{
     chatroom::CHATROOM,
-    // chatroom::{components::ChatroomUserCard, CHATROOM},
+    chatroom::types::Group,
     components::Icon,
+    
 };
 
 pub fn ChatroomDetail(cx: Scope) -> Element {
     let chatroom_state = use_atom_ref(&cx, CHATROOM);
-    let active_chatroom = chatroom_state.read().get_active_chatroom();
+    let active_chatroom: Option <Group> = None;
+
+    // let active_chatroom = chatroom_state.read().get_active_chatroom();
     // let Some(active_user) = active_chatroom.user.len();
     cx.render(
         match active_chatroom {
@@ -57,7 +60,7 @@ pub fn ChatroomDetail(cx: Scope) -> Element {
                             }
                             button {
                                 onclick: move |_| {
-                                    chatroom_state.write().add_chatroom_user(chatroom.id, "new user".to_owned() + &chatroom.user.len().to_string());
+                                    // chatroom_state.write().add_chatroom_user(chatroom.uuid, "new user".to_owned() + &chatroom.user.len().to_string());
                                 },
                                 Icon{
                                     name: "fa-solid fa-plus",

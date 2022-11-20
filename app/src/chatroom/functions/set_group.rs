@@ -22,7 +22,7 @@ pub async fn set_group(wallet: Wallet, name: String) {
     let id = Uuid::new_v4();
 
     let input = SetGroupInput {
-        uuid: "3".to_string(),
+        uuid: "4".to_string(),
         name: name,
     };
     let contract_id = CHANNEL_CONTRACT_ID.parse::<AccountId>().unwrap();

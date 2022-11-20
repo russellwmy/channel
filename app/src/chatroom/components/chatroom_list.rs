@@ -1,11 +1,13 @@
 use std::collections::HashMap;
+use std::vec::Vec;
 
 use dioxus::prelude::*;
 
 use crate::{
     chatroom::{
         components::{ChatroomListCard, NewChatroomModal},
-        types::NewChatroom,
+        functions::get_groups_debug,
+        types::{Group, NewChatroom},
         CHATROOM,
     },
     errors::ContractCallError,
@@ -13,6 +15,8 @@ use crate::{
     user::{components::CreateUserButton, functions::get_user, types::GetUserInput, USER},
     wallet::{components::NearConnectButton, WALLET},
 };
+
+pub type Groups = HashMap<String, Group>;
 
 pub fn ChatroomList(cx: Scope) -> Element {
     let wallet_state = use_atom_ref(&cx, WALLET);
@@ -22,29 +26,14 @@ pub fn ChatroomList(cx: Scope) -> Element {
     let account_clone = account_id.clone();
 
     let chatroom_state = use_atom_ref(&cx, CHATROOM);
-    let chatrooms = chatroom_state.read().get_all_chatrooms().clone();
-    let active_id = chatroom_state.read().active_id;
+
+    let active_id = chatroom_state.read().active_id.clone();
+    log::info!("active id :: {}", active_id);
+    let active_id_clone = &*active_id;
 
     let user_state = use_atom_ref(&cx, USER);
     let user = user_state.read().user();
-    let username = use_state(&cx, || "Hello!".to_string());
 
-    let sample_data = NewChatroom {
-        name: "Group name".to_string(),
-        user: HashMap::new(),
-    };
-
-    let name_list = chatrooms.into_iter().map(|(id, item)| {
-        rsx!(ChatroomListCard {
-            id: "{id}",
-            key: "{id}",
-            title: item.name.to_owned(),
-            active: active_id == item.id,
-            onclick: move |_| {
-                chatroom_state.write().set_active_id(item.id);
-            }
-        })
-    });
     let user_fut = use_future(&cx, (), |_| async move {
         match account_clone {
             Some(account_id) => {
@@ -68,6 +57,24 @@ pub fn ChatroomList(cx: Scope) -> Element {
                 None => log::info!("loading"),
             };
         }
+    };
+
+
+    let empty_group: Vec<Group> = Vec::new();
+    let group = use_state(&cx, || empty_group);
+
+    let group_fut = use_future(&cx, (), |_| async move {
+        let groups: Result<Vec<Group>, serde_json::Error>  = get_groups_debug(wallet.clone()).await;
+        return groups
+    });
+
+    if (group.clone().len() == 0){
+
+        match group_fut.value() {
+            Some(Ok(val)) => { group.set(val.clone()) }
+            Some(Err(err)) => log::error!(" get group debug{}", err),
+            None => log::info!("loading"),
+        };
     };
 
     cx.render(rsx! (
@@ -99,7 +106,17 @@ pub fn ChatroomList(cx: Scope) -> Element {
 
             }
             div {
-                name_list
+                group.iter().map(|item| {
+                    rsx!(ChatroomListCard {
+                        // id: "{item.uuid}",
+                        // key: "{item.uuid}",
+                        title: item.name.to_owned(),
+                        active: false,
+                        onclick: move |_| {
+                            chatroom_state.write().set_active_id(item.clone().uuid);
+                        }
+                    })
+                })
             }
             NewChatroomModal()
         }
