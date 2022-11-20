@@ -8,55 +8,58 @@ pub fn NewChatroomModal(cx: Scope) -> Element {
     let wallet = wallet_state.read().wallet();
 
     let is_modal_visible = use_state(&cx, || false);
-    // let name = use_state(&cx, || "".to_string());
+    let name = use_state(&cx, || "".to_string());
 
     let view = rsx! {
         div {
-            class: "absolute",
             button {
+                class: "btn primary normal-case m-3",
                 onclick: move |_| { is_modal_visible.set(!is_modal_visible) },
-                class: " btn primary normal-case",
                 i {
                    class: "fa-solid fa-plus"
                 }
             }
             div {
-                id:"my-modal",
-                hidden: "{is_modal_visible}",
+                class: "static",
                 div {
-                    class:"modal-box p-3 m-3",
-                    h3 {"Name"}
-                    // <input type="text" class="input w-full max-w-xs" />
-                    input {
-                        // name: "name",
-                        class:"input w-full m-3",
-                        // placeholder:"Type here"  ,
-
-                        // oninput: move |evt| name.set(evt.value.clone()),
-                    }
-                    button {
-                        class: " btn primary normal-case m-3",
-                        onclick: move |_| { is_modal_visible.set(!is_modal_visible) },
-
-                        h1 {"Close"}
-                    }
-
-                    button {
-                        class: " btn primary normal-case m-3",
-                        onclick: move |_| {
-                            let wallet_clone = wallet.clone();
-                            cx.spawn({
-                                async move {
-                                    set_group(wallet_clone, "chatroom".to_string()).await;
-                                }
-                            });
-                            info!("after set up");
-                            is_modal_visible.set(!is_modal_visible)
-                        },
-                        h1 {"create"}
+                    class: "absolute bottom-0 left-0 top-0 right-0",
+                    hidden: "{is_modal_visible}",
+                    div { 
+                        class: "grid place-content-center h-full",
+                        id:"my-modal",
+                        hidden: "{is_modal_visible}",
+                        div {
+                            class:"modal-box p-3 m-3",
+                            h3 {"Name"}
+                            input {
+                                class:"input w-3/4 m-3",
+                                oninput: move |evt| name.set(evt.value.clone()),
+                            }
+                            button {
+                                class: " btn primary normal-case m-3",
+                                onclick: move |_| { is_modal_visible.set(!is_modal_visible) },
+                                h1 {"Close"}
+                            }
+        
+                            button {
+                                class: " btn primary normal-case m-3",
+                                onclick: move |_| {
+                                    let wallet_clone = wallet.clone();
+                                    cx.spawn({
+                                        async move {
+                                            set_group(wallet_clone, "chatroom".to_string()).await;
+                                        }
+                                    });
+                                    info!("after set up");
+                                    is_modal_visible.set(!is_modal_visible)
+                                },
+                                h1 {"create"}
+                            }
+                        }
                     }
                 }
             }
+
         }
     };
 

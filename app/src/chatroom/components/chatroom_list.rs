@@ -72,7 +72,7 @@ pub fn ChatroomList(cx: Scope) -> Element {
 
     cx.render(rsx! (
         div {
-            class: "relative items-stretch",
+            class: "items-stretch",
             div {
                 class: "flex flex-row items-center justify-between border-b-2 border-gray-100 py-2 px-4 md:space-x-10 sticky top-0",
                 cx.render( match account_id {
@@ -101,16 +101,7 @@ pub fn ChatroomList(cx: Scope) -> Element {
             div {
                 name_list
             }
-            div {
-                // class: "fixed bottom-40 right-0 p-2 items-center",
-                class: "p-2 flex justify-around",
-                NewChatroomModal()
-                TempCreateForm{
-                    onclick:  move |_| {
-                        chatroom_state.write().add_chatroom(sample_data.clone());
-                    }
-                }
-            }
+            NewChatroomModal()
         }
     ))
 }
