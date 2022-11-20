@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 
-use crate::{app, chat, home, mic_check, wallet::WALLET};
+use crate::{app, chat, home, mic_check, wallet::WALLET, user};
 
 #[derive(Props)]
 struct PrivateProps<'a> {
@@ -24,6 +24,7 @@ pub fn Routes(cx: Scope) -> Element {
         Route { to: "/", home::pages::HomePage{}}
         Route { to: "/mic-check", mic_check::pages::MicCheckPage{}}
         Route { to: "/chat", chat::pages::ChatPage{}}
+        Route { to: "/profile", user::pages::ProfilePage{}}
         Route { to: "", app::pages::PageNotFound{}}
     ))
 }

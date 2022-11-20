@@ -14,7 +14,7 @@ pub fn ChatPage(cx: Scope) -> Element {
 
         cloned_client
             .write()
-            .connect(format!("ws://{}", host).as_str())
+            .connect(format!("ws://{}/ws", host).as_str())
             .await;
     });
 

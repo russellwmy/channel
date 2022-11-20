@@ -10,7 +10,7 @@ use crate::{
     },
     errors::ContractCallError,
     temp::components::TempCreateForm,
-    user::{components::CreateUserButton, functions::get_user_info, types::GetUserInfoInput, USER},
+    user::{components::CreateUserButton, functions::get_user, types::GetUserInput, USER},
     wallet::{components::NearConnectButton, WALLET},
 };
 #[derive(Debug)]
@@ -31,7 +31,7 @@ pub fn ChatroomList(cx: Scope) -> Element {
     let active_id = chatroom_state.read().active_id;
 
     let user_state = use_atom_ref(&cx, USER);
-    let user = user_state.read().info();
+    let user = user_state.read().user();
     let username = use_state(&cx, || "Hello!".to_string());
 
     let sample_data = NewChatroom {
@@ -50,10 +50,10 @@ pub fn ChatroomList(cx: Scope) -> Element {
             }
         })
     });
-    let user_info_fut = use_future(&cx, (), |_| async move {
+    let user_fut = use_future(&cx, (), |_| async move {
         match account_clone {
             Some(account_id) => {
-                let result = get_user_info(wallet_clone, GetUserInfoInput { account_id }).await;
+                let result = get_user(wallet_clone, GetUserInput { account_id }).await;
                 result.map_err(|e| ContractCallError::CallFail(e.to_string()))
             }
             _ => Err(ContractCallError::InputError(
@@ -62,7 +62,7 @@ pub fn ChatroomList(cx: Scope) -> Element {
         }
     });
 
-    match user_info_fut.value() {
+    match user_fut.value() {
         Some(Ok(val)) => {
             user_state.write().set_info(val.clone());
         }

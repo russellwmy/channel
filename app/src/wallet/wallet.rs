@@ -53,7 +53,7 @@ impl WalletState {
         success_url: Option<String>,
         failure_url: Option<String>,
     ) {
-        let contract_id = crate::config::USER_CONTRACT_ID;
+        let contract_id = crate::config::CONTRACT_ID;
         self.wallet
             .request_sign_in(
                 Some(contract_id.to_string()),

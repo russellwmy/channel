@@ -12,25 +12,25 @@ use near_sdk::{
 #[derive(BorshDeserialize, BorshSerialize, Serialize)]
 #[serde(crate = "near_sdk::serde")]
 pub struct Group {
+    pub id: String,
     pub creator: AccountId,
-    pub uuid: String,
     pub name: String,
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Serialize)]
 #[serde(crate = "near_sdk::serde")]
 pub struct GroupUser {
-    pub groupUuid: String,
-    pub accountId: AccountId,
-    pub isAdmin: bool,
+    pub group_id: String,
+    pub account_id: AccountId,
+    pub is_admin: bool,
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Serialize)]
 #[serde(crate = "near_sdk::serde")]
 pub struct User {
-    pub accountId: AccountId,
+    pub account_id: AccountId,
     pub name: String,
-    pub data: String,
+    pub image: Option<String>,
 }
 
 // set group - create / edit group, creator will be joined, Done
@@ -49,7 +49,7 @@ pub struct User {
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct ChannelContract {
     groups: Vector<Group>,
-    groupUsers: Vector<GroupUser>,
+    group_users: Vector<GroupUser>,
     users: Vector<User>,
 }
 
@@ -57,7 +57,7 @@ impl Default for ChannelContract {
     fn default() -> Self {
         Self {
             groups: Vector::new(b"g"),
-            groupUsers: Vector::new(b"j"), //j for "join" table
+            group_users: Vector::new(b"j"), //j for "join" table
             users: Vector::new(b"u"),
         }
     }
@@ -71,75 +71,75 @@ impl ChannelContract {
         // just clear state on migration
         Self {
             groups: Vector::new(b"g"),
-            groupUsers: Vector::new(b"j"), //j for "join" table
+            group_users: Vector::new(b"j"), //j for "join" table
             users: Vector::new(b"u"),
         }
     }
 
     // set group - create / edit group, creator will be joined
     #[payable]
-    pub fn set_group(&mut self, uuid: String, name: String) -> bool {
+    pub fn set_group(&mut self, id: String, name: String) -> bool {
         let sender = env::predecessor_account_id();
 
         // if group exists edit it
         for i in 0..self.groups.len() {
             let group = self.groups.get(i).unwrap();
-            if group.uuid == uuid && group.creator == sender {
-                let newGroup = Group {
+            if group.id == id && group.creator == sender {
+                let new_group = Group {
                     creator: group.creator,
-                    uuid: group.uuid,
+                    id: group.id,
                     name: name,
                 };
 
-                self.groups.replace(i, &newGroup);
+                self.groups.replace(i, &new_group);
                 return true;
             }
         }
 
         // create group
         let group = Group {
+            id: id.clone(),
             creator: sender.clone(),
-            uuid: uuid.clone(),
             name,
         };
         self.groups.push(&group);
 
         // creator joins group
-        let groupUser = GroupUser {
-            groupUuid: uuid.clone(),
-            accountId: sender.clone(),
-            isAdmin: true,
+        let group_user = GroupUser {
+            group_id: id.clone(),
+            account_id: sender.clone(),
+            is_admin: true,
         };
-        self.groupUsers.push(&groupUser);
+        self.group_users.push(&group_user);
 
         return true;
     }
 
     // set user - create / edit user profile
-    #[payable]
-    pub fn set_user(&mut self, name: String, data: String) -> bool {
+    // #[payable]
+    pub fn set_user(&mut self, name: String, image: Option<String>) -> bool {
         let sender = env::predecessor_account_id();
 
         // if user exists edit it
         for i in 0..self.users.len() {
             let user = self.users.get(i).unwrap();
-            if user.accountId == sender {
-                let newUser = User {
-                    accountId: sender,
+            if user.account_id == sender {
+                let new_user = User {
+                    account_id: sender,
                     name: name,
-                    data: data,
+                    image: image,
                 };
 
-                self.users.replace(i, &newUser);
+                self.users.replace(i, &new_user);
                 return true;
             }
         }
 
         // create user
         let user = User {
-            accountId: sender,
+            account_id: sender,
             name: name,
-            data: data,
+            image: image,
         };
         self.users.push(&user);
 
@@ -150,24 +150,28 @@ impl ChannelContract {
         return self.groups.iter().collect();
     }
 
-    pub fn get_joined_groups(&self, accountId: AccountId) -> Vec<Group> {
+    pub fn get_user(&self, account_id: AccountId) -> Option<User> {
+        self.users.iter().find(|u| u.account_id == account_id)
+    }
+
+    pub fn get_joined_groups(&self, account_id: AccountId) -> Vec<Group> {
         return self
-            .groupUsers
+            .group_users
             .iter()
-            .filter(|gu| gu.accountId == accountId)
-            .map(|gu| self.groups.iter().find(|g| g.uuid == gu.groupUuid).unwrap())
+            .filter(|gu| gu.account_id == account_id)
+            .map(|gu| self.groups.iter().find(|g| g.id == gu.group_id).unwrap())
             .collect();
     }
 
-    pub fn get_group_users(&self, groupUuid: String) -> Vec<User> {
+    pub fn get_group_users(&self, group_id: String) -> Vec<User> {
         return self
-            .groupUsers
+            .group_users
             .iter()
-            .filter(|gu| gu.groupUuid == groupUuid)
+            .filter(|gu| gu.group_id == group_id)
             .map(|gu| {
                 self.users
                     .iter()
-                    .find(|u| u.accountId == gu.accountId)
+                    .find(|u| u.account_id == gu.account_id)
                     .unwrap()
             })
             .collect();

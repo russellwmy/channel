@@ -3,7 +3,7 @@ RUSTFLAGS = "-C link-arg=-s"
 
 [env.development]
 MAIN_ACCOUNT = "channel.testnet"
-CONTRACT_ID = "group.channel.testnet"
+CONTRACT_ID = "dev.channel.testnet"
 
 
 [tasks.format]
@@ -41,11 +41,6 @@ script = [
 ]
 dependencies = ["release-contract"]
 
-[tasks.init-contract]
-condition = { profiles = ["development"] }
-script = [
-    "near call $CONTRACT_ID new '{\"owner_id\": \"'$MAIN_ACCOUNT'\"}' --accountId $CONTRACT_ID",
-]
 [tasks.delete-contract-account]
 condition = { profiles = ["development"] }
 script = [

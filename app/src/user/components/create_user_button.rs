@@ -1,11 +1,7 @@
-use dioxus::{hooks::use_effect, prelude::*};
-use log::info;
+use dioxus::prelude::*;
 
 use crate::{
-    user::{
-        functions::{create_user, get_user_info},
-        types::{GetUserInfoInput, NewUserInput},
-    },
+    user::{functions::set_user, types::NewUserInput},
     wallet::WALLET,
 };
 
@@ -21,11 +17,11 @@ pub fn CreateUserButton(cx: Scope) -> Element {
         if let Some(account_id) = account.clone() {
             cx.spawn({
                 async move {
-                    let result = create_user(
+                    let result = set_user(
                         wallet_clone,
                         NewUserInput {
                             name: "steph".to_string(),
-                            image: Some("steph_image".to_string()),
+                            image: None,
                         },
                     )
                     .await;
