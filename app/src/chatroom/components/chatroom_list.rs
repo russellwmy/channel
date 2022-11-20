@@ -6,7 +6,7 @@ use dioxus::prelude::*;
 use crate::{
     chatroom::{
         components::{ChatroomListCard, NewChatroomModal},
-        functions::get_groups_debug,
+        functions::{get_groups_debug, get_joined_groups},
         types::{Group, NewChatroom},
         CHATROOM,
     },
@@ -64,7 +64,8 @@ pub fn ChatroomList(cx: Scope) -> Element {
     let group = use_state(&cx, || empty_group);
 
     let group_fut = use_future(&cx, (), |_| async move {
-        let groups: Result<Vec<Group>, serde_json::Error>  = get_groups_debug(wallet.clone()).await;
+        let wallet_clone = wallet.clone();
+        let groups: Result<Vec<Group>, serde_json::Error>  = get_groups_debug(wallet_clone).await;
         return groups
     });
 
@@ -82,7 +83,7 @@ pub fn ChatroomList(cx: Scope) -> Element {
             class: "items-stretch",
             div {
                 class: "flex flex-row items-center justify-between border-b-2 border-gray-100 py-2 px-4 md:space-x-10 sticky top-0",
-                cx.render( match account_id {
+                cx.render( match account_id.clone() {
                     Some(account) => {
                         rsx! {
                             div {
@@ -108,10 +109,10 @@ pub fn ChatroomList(cx: Scope) -> Element {
             div {
                 group.iter().map(|item| {
                     rsx!(ChatroomListCard {
-                        // id: "{item.uuid}",
+                        id: "{item.uuid}",
                         // key: "{item.uuid}",
                         title: item.name.to_owned(),
-                        active: false,
+                        active: active_id_clone == item.uuid,
                         onclick: move |_| {
                             chatroom_state.write().set_active_id(item.clone().uuid);
                         }
@@ -119,6 +120,29 @@ pub fn ChatroomList(cx: Scope) -> Element {
                 })
             }
             NewChatroomModal()
+            // match account_id.clone() {
+            //     Some(account) => {
+            //         rsx! {
+            //             button {
+            //                 class: "btn primary normal-case m-3",
+            //                 onclick: move |_| { 
+            //                     // let wallet_clone_2 = wallet_clone.clone();
+            //                     // let account_clone = account.clone();
+            //                     // cx.spawn({
+            //                     //     async move {
+            //                     //         get_joined_groups(wallet_clone_2.clone(), account_clone).await;
+            //                     //     }
+            //                     // });
+            //                 },
+            //                 h2 {
+            //                     "Joined group only"
+            //                 }
+            //             }
+            //         }
+            //     }
+            //     None => { rsx! { div {} }}
+            // }
+
         }
     ))
 }
