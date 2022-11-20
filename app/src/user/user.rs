@@ -22,11 +22,7 @@ impl UserState {
     pub fn new() -> Self {
         Self {
             registered: false,
-            user: Some(UserOutput {
-                account_id: "stephnear.testnet".to_string(),
-                name: "steph".to_string(),
-                image: None,
-            }),
+            user: None,
         }
     }
 

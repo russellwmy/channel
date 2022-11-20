@@ -1,20 +1,24 @@
 use std::str::FromStr;
 
-use web3_anywhere::{near::{
-    primitives::{
-        actions::{Action, FunctionCallAction},
-        crypto::PublicKey,
-        query::FunctionArgs,
-        transaction::{Transaction, SignedTransaction},
-        types::{AccountId, BlockReference},
+use web3_anywhere::{
+    crypto::Signature,
+    near::{
+        primitives::{
+            actions::{Action, FunctionCallAction},
+            crypto::PublicKey,
+            query::FunctionArgs,
+            transaction::{SignedTransaction, Transaction},
+            types::{AccountId, BlockReference},
+        },
+        NearRpcUser,
+        Wallet,
     },
-    NearRpcUser,
-    Wallet,
-}, crypto::Signature};
+};
 
 use crate::{
     config::{CONTRACT_ID, GAS_FEE},
-    user::types::NewUserInput, errors::ContractCallError,
+    errors::ContractCallError,
+    user::types::NewUserInput,
 };
 
 pub async fn set_user(wallet: Wallet, input: NewUserInput) {
@@ -31,7 +35,7 @@ pub async fn set_user(wallet: Wallet, input: NewUserInput) {
         .view_access_key(&account_id, &public_key)
         .await
         .unwrap();
-    
+
     let block_hash = block.header.hash;
     let nonce = access_key.nonce + 1;
     let args = serde_json::json!(input);
@@ -50,7 +54,7 @@ pub async fn set_user(wallet: Wallet, input: NewUserInput) {
             deposit: 0,
         })],
     };
-    let (hash, _)= transaction.clone().get_hash_and_size();
+    let (hash, _) = transaction.clone().get_hash_and_size();
     let message = wallet.sign_message(hash.as_bytes());
     let signature = Signature::from_str(&message).unwrap();
     let tx = SignedTransaction::new(signature, transaction);

@@ -13,11 +13,6 @@ use crate::{
     user::{components::CreateUserButton, functions::get_user, types::GetUserInput, USER},
     wallet::{components::NearConnectButton, WALLET},
 };
-#[derive(Debug)]
-enum Version {
-    Version1,
-    Version2,
-}
 
 pub fn ChatroomList(cx: Scope) -> Element {
     let wallet_state = use_atom_ref(&cx, WALLET);
@@ -62,12 +57,17 @@ pub fn ChatroomList(cx: Scope) -> Element {
         }
     });
 
-    match user_fut.value() {
-        Some(Ok(val)) => {
-            user_state.write().set_info(val.clone());
+    match user.clone() {
+        Some(val) => {}
+        None => {
+            match user_fut.value() {
+                Some(Ok(val)) => {
+                    user_state.write().set_info(val.clone());
+                }
+                Some(Err(err)) => log::error!("{}", err),
+                None => log::info!("loading"),
+            };
         }
-        Some(Err(err)) => log::error!("{}", err),
-        None => log::info!("loading"),
     };
 
     cx.render(rsx! (

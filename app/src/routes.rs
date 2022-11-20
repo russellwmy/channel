@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 
-use crate::{app, chat, home, mic_check, wallet::WALLET, user};
+use crate::{app, chat, home, mic_check, user, wallet::WALLET};
 
 #[derive(Props)]
 struct PrivateProps<'a> {
