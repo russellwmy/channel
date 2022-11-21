@@ -1,3 +1,5 @@
+use std::{thread, time::Duration};
+
 use futures::channel::oneshot::{self, Canceled};
 use protocol::{ParticipantId, RoomId, Signal};
 use wasm_bindgen::{prelude::*, JsCast};
@@ -38,21 +40,25 @@ pub async fn connect_server(url: &str) -> Result<(WebSocket, ParticipantId), Can
 }
 
 fn send_signal(ws: WebSocket, signal: Signal) {
-    match ws.ready_state() {
-        1 => {
-            let message = match serde_json::to_string(&signal) {
-                Ok(msg) => msg,
-                Err(e) => {
-                    log::error!("error serializing SessionNew{:?}: {:?}", signal, e);
-                    return;
-                }
-            };
-            let _ = ws.send_with_str(&message);
-        }
-        _ => {
-            log::error!("web socket not opened");
-        }
-    };
+    loop {
+        match ws.ready_state() {
+            1 => {
+                let message = match serde_json::to_string(&signal) {
+                    Ok(msg) => msg,
+                    Err(e) => {
+                        log::error!("error serializing SessionNew{:?}: {:?}", signal, e);
+                        return;
+                    }
+                };
+                let _ = ws.send_with_str(&message);
+                break;
+            }
+            _ => {
+                log::error!("web socket not opened");
+            }
+        };
+        thread::sleep(Duration::from_millis(1000));
+    }
 }
 
 pub fn send_ice_candidate(
@@ -62,10 +68,6 @@ pub fn send_ice_candidate(
     candidate: String,
 ) {
     send_signal(ws, Signal::ICECandidate(room_id, participant_id, candidate));
-}
-
-pub fn create_room(ws: WebSocket) {
-    send_signal(ws.clone(), Signal::CreateRoom);
 }
 
 pub fn join_room(ws: WebSocket, room_id: RoomId) {

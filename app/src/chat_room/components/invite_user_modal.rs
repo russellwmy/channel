@@ -1,7 +1,10 @@
-use dioxus::{prelude::*, events::FormEvent};
+use dioxus::{events::FormEvent, prelude::*};
 use uuid::Uuid;
 
-use crate::{chat_room::{functions::set_group, types::SetGroupInput}, wallet::WALLET};
+use crate::{
+    chat_room::{functions::set_group, types::SetGroupInput},
+    wallet::WALLET,
+};
 
 pub fn InviteUserModal(cx: Scope) -> Element {
     let wallet_state = use_atom_ref(&cx, WALLET);
@@ -14,17 +17,21 @@ pub fn InviteUserModal(cx: Scope) -> Element {
         let wallet_clone = wallet.clone();
         cx.spawn({
             async move {
-                set_group(wallet_clone, SetGroupInput {
-                    id: Uuid::new_v4().to_string(),
-                    name: name.clone()
-                } ).await;
+                set_group(
+                    wallet_clone,
+                    SetGroupInput {
+                        id: Uuid::new_v4().to_string(),
+                        name: name.clone(),
+                    },
+                )
+                .await;
             }
         });
         is_hidden.set(!is_hidden);
     };
     let bg = match *is_hidden.clone() {
         true => "",
-        false => "bg-black"
+        false => "bg-black",
     };
 
     cx.render(rsx! {
@@ -65,10 +72,8 @@ pub fn InviteUserModal(cx: Scope) -> Element {
                                 r#type: "reset",
                                 class: " btn primary normal-case m-3",
                                 onclick: move |_| { is_hidden.set(!is_hidden) },
-        
                                 h1 {"Close"}
                             }
-        
                             button {
                                 class: " btn primary normal-case m-3",
                                 h1 {"create"}

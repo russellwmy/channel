@@ -2,14 +2,12 @@ use std::{borrow::BorrowMut, cell::RefCell, rc::Rc, str::FromStr};
 
 use protocol::{RoomId, Signal};
 use wasm_bindgen::{prelude::Closure, JsCast};
-use wasm_bindgen_futures::spawn_local;
 use web_sys::{MessageEvent, WebSocket};
 
 use crate::{
     local_participant::{self, LocalParticipant},
     participant::Participant,
     room::Room,
-    sdp,
     signaling,
 };
 
@@ -58,29 +56,14 @@ impl Client {
         let (ws, participant_id) = signaling::connect_server(url).await.unwrap();
         let mut local_participant = LocalParticipant::new_with_id(participant_id);
 
-        let _ = local_participant.start_stream().await;
+        let _ = local_participant.init_streaming().await;
         room.set_local_participant(local_participant);
 
         self.ws = Some(ws);
         self.is_connected = true;
         self.init();
     }
-
-    pub fn create_room(&self) {
-        let ws = self.ws.clone().unwrap();
-        signaling::create_room(ws);
-    }
-
     pub fn join_room(&mut self, room_id: &str) {
-        // let rc_room = Rc::clone(&self.room);
-
-        // spawn_local(async move {
-        //     let mut room = (*rc_room).borrow_mut();
-        //     let mut local_participant = room.local_participant().unwrap();
-        //     let _ = local_participant.borrow_mut().start_stream().await;
-
-        //     room.set_local_participant(local_participant);
-        // });
         let cloned_ws = self.ws.clone().unwrap();
         signaling::join_room(cloned_ws, RoomId::from_str(room_id).unwrap());
     }
@@ -100,10 +83,6 @@ impl Client {
                 serde_json::from_str(e.data().as_string().unwrap().as_str()).unwrap();
 
             match signal.clone() {
-                Signal::RoomCreated(room_id) => {
-                    let mut room = (*rc_room).borrow_mut();
-                    room.set_id(room_id);
-                }
                 Signal::NewParticipantJoined(room_id, participant_id) => {
                     let mut room = (*rc_room).borrow_mut();
                     let local_participant = room.clone().local_participant();
@@ -114,14 +93,15 @@ impl Client {
                         && local_participant.unwrap().id() != participant_id
                     {
                         log::info!("Received NewParticipantJoined");
-                        let local_participant_ex = cloned_local_participant.unwrap();
-                        let stream = local_participant_ex.stream().unwrap();
+                        let mut local_participant_ex = cloned_local_participant.unwrap();
+                        let stream = local_participant_ex.stream();
                         let participant =
                             Participant::new(participant_id.clone(), room_id.clone(), ws.clone());
 
-                        participant.publish(stream.clone());
+                        participant.publish(stream);
+                        local_participant_ex.stop_streaming();
                         if local_participant_ex.id() < participant_id {
-                            participant.create_and_send_offer()
+                            participant.create_and_send_offer();
                         }
 
                         room.add_participant(participant.clone());

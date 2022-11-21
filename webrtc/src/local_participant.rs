@@ -7,46 +7,53 @@ use crate::{errors::MediaStreamError, media};
 #[derive(Debug, Clone)]
 pub struct LocalParticipant {
     id: ParticipantId,
-    stream: Option<MediaStream>,
+    stream: MediaStream,
+    is_muted: bool,
 }
 
 impl LocalParticipant {
     pub fn new_with_id(id: ParticipantId) -> Self {
-        Self { id, stream: None }
+        Self { id, stream: MediaStream::new().unwrap(), is_muted: true }
     }
 
     pub fn id(&self) -> ParticipantId {
         self.id.clone()
     }
 
-    pub async fn start_stream(&mut self) -> Result<(), MediaStreamError> {
+    pub async fn init_streaming(&mut self) -> Result<(), MediaStreamError> {
         let constraints = media::get_contraints(false, true);
         let stream = media::create_stream(&constraints).await?;
         for track in stream.get_tracks().iter() {
             let track = track.dyn_into::<MediaStreamTrack>().unwrap();
-            // track.set_enabled(false);
+            track.set_enabled(false);
+            self.stream.add_track(&track);
         }
-        self.stream = Some(stream);
         Ok(())
     }
 
-    pub async fn stop_stream(&mut self) -> Result<(), MediaStreamError> {
-        log::info!("stop stream: {:?}", self.stream.is_some());
-        match self.stream.clone() {
-            Some(stream) => {
-                for track in stream.get_tracks().iter() {
-                    let track = track.dyn_into::<MediaStreamTrack>().unwrap();
-                    track.stop();
-                }
-                log::info!("stop all tracks");
-            }
-            _ => {}
-        };
-
+    pub async fn start_streaming(&mut self) -> Result<(), MediaStreamError> {
+        for track in self.stream.get_tracks().iter() {
+            let track = track.dyn_into::<MediaStreamTrack>().unwrap();
+            track.set_enabled(true);
+        }
+        self.is_muted = false;
         Ok(())
     }
 
-    pub fn stream(&self) -> Option<MediaStream> {
-        self.stream.clone()
+    pub async fn stop_streaming(&mut self) -> Result<(), MediaStreamError> {
+        for track in self.stream.get_tracks().iter() {
+            let track = track.dyn_into::<MediaStreamTrack>().unwrap();
+            track.set_enabled(false);
+        }
+        self.is_muted = true;
+        Ok(())
+    }
+
+    pub fn muted(&self) ->bool {
+        self.is_muted
+    }
+    
+    pub fn stream(&self) -> &MediaStream {
+        &self.stream
     }
 }

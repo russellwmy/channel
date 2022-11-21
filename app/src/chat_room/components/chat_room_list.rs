@@ -2,10 +2,9 @@ use dioxus::prelude::*;
 
 use crate::{
     chat_room::{
-
         components::{ChatRoomListCard, NewChatRoomModal},
         functions::get_owned_groups,
-        types::{ GetOwnedGroupsInput},
+        types::GetOwnedGroupsInput,
     },
     user::USER,
     wallet::WALLET,

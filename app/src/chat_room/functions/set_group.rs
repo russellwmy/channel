@@ -13,8 +13,8 @@ use web3_anywhere::{
 };
 
 use crate::{
-    config::{CONTRACT_ID, GAS_FEE},
     chat_room::types::SetGroupInput,
+    config::{CONTRACT_ID, GAS_FEE},
 };
 
 pub async fn set_group(wallet: Wallet, input: SetGroupInput) {

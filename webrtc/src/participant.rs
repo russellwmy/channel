@@ -76,10 +76,10 @@ impl Participant {
         self.connection.clone()
     }
 
-    pub fn publish(&self, stream: MediaStream) {
+    pub fn publish(&self, stream: &MediaStream) {
         for track in stream.get_tracks().iter() {
             let track = track.dyn_into::<MediaStreamTrack>().unwrap();
-            log::info!("{}", track.id());
+            log::info!("track id: {}", track.id());
             self.connection.add_track_0(&track, &stream);
         }
     }
