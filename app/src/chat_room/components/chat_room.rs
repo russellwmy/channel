@@ -28,7 +28,8 @@ pub fn ChatRoom(cx: Scope<ChatRoomUserListProps>) -> Element {
     let router = use_router(&cx);
     let is_muted = use_state(&cx, || true);
     let is_joined = use_state(&cx, || false);
-    let is_refresh = use_state(&cx, || false);
+    let is_refresh = use_state(&cx, || true);
+
     let wallet_state = use_atom_ref(&cx, WALLET);
     let wallet = wallet_state.read().wallet();
     let wallet_clone = wallet.clone();
@@ -56,7 +57,8 @@ pub fn ChatRoom(cx: Scope<ChatRoomUserListProps>) -> Element {
         cloned_client.write().join_room(&room_id_clone.clone());
     });
 
-    let group_fut = use_future(&cx, (), |_| async move {
+
+    let group_fut = use_future(&cx, (is_refresh), |_| async move {
         match account_id {
             Some(account_id) => {
                 let wallet_clone = wallet.clone();
@@ -65,8 +67,7 @@ pub fn ChatRoom(cx: Scope<ChatRoomUserListProps>) -> Element {
                     GetGroupInput {
                         group_id: room_id.clone(),
                     },
-                )
-                .await;
+                ).await;
                 match result {
                     Ok(result) => Some(result),
                     _ => None,
@@ -75,21 +76,6 @@ pub fn ChatRoom(cx: Scope<ChatRoomUserListProps>) -> Element {
             _ => None,
         }
     });
-
-    let handle_join_group = move |_| {
-        let wallet_clone_2 = wallet_clone.clone();
-        let room_id_clone_3 = room_id_clone_2.clone();
-        cx.spawn({
-            async move {
-                join_group( 
-                    wallet_clone_2,
-                    JoinGroupInput { id: room_id_clone_3},
-                ).await;
-            }
-        });
-        group_fut.restart();
-        is_refresh.set(true);
-    };
 
     if **is_refresh {
         match group_fut.clone().value() {
@@ -101,15 +87,35 @@ pub fn ChatRoom(cx: Scope<ChatRoomUserListProps>) -> Element {
                             .users
                             .iter()
                             .any(|v| v.account_id == account_id_clone);
+
                         is_joined.set(joined);
+                        is_refresh.set(false);
                     }
                     None => {}
+                    
                 },
                 None => {}
             },
             None => {}
         };
-        is_refresh.set(false);
+    };
+
+    if (!is_joined && !is_refresh){
+        let wallet_clone_2 = wallet_clone.clone();
+        let room_id_clone_3 = room_id_clone_2.clone();
+        let cloned_is_refresh = is_refresh.clone();
+        cx.spawn({
+            async move {
+                join_group(
+                    wallet_clone_2,
+                    JoinGroupInput {
+                        id: room_id_clone_3,
+                    },
+                )
+                .await;
+                cloned_is_refresh.set(true);
+            }
+        });
     };
 
     let handle_microphone_click = move |_| {
@@ -137,9 +143,7 @@ pub fn ChatRoom(cx: Scope<ChatRoomUserListProps>) -> Element {
         false => "btn-success",
     };
 
-    log::info!("is_joined:: {}", is_joined);
-
-    let joined_view = rsx! (
+    cx.render(rsx! (
         div {
             class: "relative items-stretch",
             div {
@@ -173,7 +177,7 @@ pub fn ChatRoom(cx: Scope<ChatRoomUserListProps>) -> Element {
                             Some(group) =>  {
                                 rsx!(
                                     div {
-                                        class: "flex text-xl font-bold text-white p-2",                                       
+                                        class: "flex text-xl font-bold text-white p-2",
                                         "Room: {group.name}"
                                     }
 
@@ -185,7 +189,7 @@ pub fn ChatRoom(cx: Scope<ChatRoomUserListProps>) -> Element {
                                             is_admin: item.is_admin,
                                         })
                                     })
-                                
+
                                 )
                             },
                             None => rsx!("")
@@ -195,23 +199,5 @@ pub fn ChatRoom(cx: Scope<ChatRoomUserListProps>) -> Element {
                 }
             }
         }
-    );
-
-    let not_joined_view = rsx! (
-        div {
-            class: "flex flex-col items-center justify-stretch h-[50px] mb-2",
-            button {
-                class: "btn w-[150px] h-[48px] ml-1",
-                onclick: handle_join_group,
-                h2 {"Join Channel"}
-            }
-        }
-    );
-
-    let view = match *(is_joined).clone() {
-        true => joined_view,
-        false => not_joined_view,
-    };
-
-    cx.render(view)
+    ))
 }
