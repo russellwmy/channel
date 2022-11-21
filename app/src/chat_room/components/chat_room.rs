@@ -3,8 +3,8 @@ use dioxus::prelude::*;
 use crate::{
     chat_room::{
         components::{ChatRoomUserCard, InviteUserModal},
-        functions::get_group_users,
-        types::GetGroupUserInput,
+        functions::get_group,
+        types::GetGroupInput,
     },
     user::USER,
     wallet::WALLET,
@@ -32,19 +32,23 @@ pub fn ChatRoom(cx: Scope<ChatRoomUserListProps>) -> Element {
     let user = user_state.read().user();
     let username = use_state(&cx, || "".to_string());
 
-    let group_users_fut = use_future(&cx, (), |_| async move {
+    let group_fut = use_future(&cx, (), |_| async move {
         match account_id {
             Some(account_id) => {
                 let wallet_clone = wallet.clone();
-                get_group_users(
+                let result = get_group(
                     wallet_clone,
-                    GetGroupUserInput {
+                    GetGroupInput {
                         group_id: room_id.clone(),
                     },
                 )
-                .await
+                .await;
+                match result {
+                    Ok(result) => Some(result),
+                    _ => None,
+                }
             }
-            _ => Ok(vec![]),
+            _ => None,
         }
     });
 
@@ -57,27 +61,29 @@ pub fn ChatRoom(cx: Scope<ChatRoomUserListProps>) -> Element {
                 button {
                     class: "btn ml-1",
                     onclick: move |_| {
-                        group_users_fut.restart();
+                        group_fut.restart();
                     },
                     i { class: "fa-solid fa-rotate" },
                 }
             }
             div {
-                match group_users_fut.value() {
-                    Some(Ok(groups)) => {
-                        rsx!(
-                            groups.iter().map(|item| {
-                                rsx!(ChatRoomUserCard {
-                                    key: "{item.account_id}",
-                                    account_id: item.account_id.to_string(),
-                                    muted: false,
-                                    is_admin: false,
+                match group_fut.value() {
+                    Some(value) => {
+                        match value {
+                            Some(group) =>  rsx!(
+                                group.users.iter().map(|item| {
+                                    rsx!(ChatRoomUserCard {
+                                        key: "{item.account_id}",
+                                        account_id: item.account_id.to_string(),
+                                        muted: false,
+                                        is_admin: item.is_admin,
+                                    })
                                 })
-                            })
-                        )
+                            ),
+                            None => rsx!("")
+                        }
                     }
-                    Some(Err(err)) => rsx!(""),
-                    None => rsx!("loading"),
+                    None => rsx!(""),
                 }
             }
         }
