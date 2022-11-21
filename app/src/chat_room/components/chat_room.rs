@@ -150,7 +150,6 @@ pub fn ChatRoom(cx: Scope<ChatRoomUserListProps>) -> Element {
                 class: "relative flex items-center justify-between h-[50px] mb-2",
                 div {
                     class: "flex",
-                    InviteUserModal{}
                     button {
                         class: "btn w-[48px] h-[48px] ml-1",
                         onclick: move |_| {
@@ -182,12 +181,16 @@ pub fn ChatRoom(cx: Scope<ChatRoomUserListProps>) -> Element {
                                     }
 
                                     group.users.iter().map(|item| {
-                                        rsx!(ChatRoomUserCard {
-                                            key: "{item.account_id}",
-                                            account_id: item.account_id.to_string(),
-                                            muted: false,
-                                            is_admin: item.is_admin,
-                                        })
+                                        rsx!(
+                                            div {
+                                                class: "mb-2",
+                                                ChatRoomUserCard {
+                                                    key: "{item.account_id}",
+                                                    account_id: item.account_id.to_string(),
+                                                    muted: false,
+                                                    is_admin: item.is_admin,
+                                                }
+                                            })
                                     })
 
                                 )

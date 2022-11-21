@@ -12,7 +12,7 @@ pub fn TopBar(cx: Scope) -> Element {
 
     cx.render(rsx! (
         div {
-            class: "p-2 flex items-center",
+            class: "p-2 flex items-center bg-slate-800",
             div {
                 button {
                     class: "btn btn-rounded",
@@ -21,10 +21,6 @@ pub fn TopBar(cx: Scope) -> Element {
                     },
                     i {
                         class: "fa-solid fa-home"
-                    }
-                    span {
-                        class: "ml-2",
-                        "Home"
                     }
                 }
             }
