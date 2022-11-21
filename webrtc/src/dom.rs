@@ -1,5 +1,5 @@
 use wasm_bindgen::JsCast;
-use web_sys::{Document, HtmlAudioElement, MediaStream, Window, HtmlVideoElement};
+use web_sys::{Document, HtmlAudioElement, HtmlVideoElement, MediaStream, Window};
 
 use crate::errors::MediaStreamError;
 
@@ -28,12 +28,15 @@ pub fn attach_stream(stream: MediaStream) {
             .unwrap()
             .dyn_into::<HtmlAudioElement>()
             .unwrap();
-            player_node.set_muted(false);
-            player_node.set_autoplay(true);
-    
+        player_node.set_muted(false);
+        player_node.set_autoplay(true);
+
         player_node.set_src_object(Some(&stream));
 
-        let body = document.get_elements_by_tag_name("body").get_with_index(0).unwrap();
+        let body = document
+            .get_elements_by_tag_name("body")
+            .get_with_index(0)
+            .unwrap();
         let _ = body.append_child(&player_node);
     }
 }

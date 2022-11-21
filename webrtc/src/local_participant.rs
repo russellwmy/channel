@@ -13,7 +13,11 @@ pub struct LocalParticipant {
 
 impl LocalParticipant {
     pub fn new_with_id(id: ParticipantId) -> Self {
-        Self { id, stream: MediaStream::new().unwrap(), is_muted: true }
+        Self {
+            id,
+            stream: MediaStream::new().unwrap(),
+            is_muted: true,
+        }
     }
 
     pub fn id(&self) -> ParticipantId {
@@ -49,10 +53,10 @@ impl LocalParticipant {
         Ok(())
     }
 
-    pub fn muted(&self) ->bool {
+    pub fn muted(&self) -> bool {
         self.is_muted
     }
-    
+
     pub fn stream(&self) -> &MediaStream {
         &self.stream
     }

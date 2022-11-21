@@ -43,7 +43,7 @@ pub fn ChatRoom(cx: Scope<ChatRoomUserListProps>) -> Element {
 
         cloned_client
             .write()
-            .connect(format!("ws://{}/ws", host).as_str())
+            .connect(format!("wss://{}/ws", host).as_str())
             .await;
         cloned_client.write().join_room(&room_id_clone.clone());
     });
@@ -87,7 +87,7 @@ pub fn ChatRoom(cx: Scope<ChatRoomUserListProps>) -> Element {
             }
         });
     };
-    let microphone_button_class =  match  *(is_muted).clone() {
+    let microphone_button_class = match *(is_muted).clone() {
         true => "btn-error",
         false => "btn-success",
     };
@@ -106,7 +106,7 @@ pub fn ChatRoom(cx: Scope<ChatRoomUserListProps>) -> Element {
                         },
                         i { class: "fa-solid fa-rotate" },
                     }
-             
+
                 }
                 button {
                     class: "btn w-[48px] h-[48px] text-white {microphone_button_class} ml-1",

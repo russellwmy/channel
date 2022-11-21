@@ -1,17 +1,10 @@
-use std::{borrow::BorrowMut, cell::RefCell, rc::Rc, str::FromStr};
+use std::{cell::RefCell, rc::Rc, str::FromStr};
 
 use protocol::{RoomId, Signal};
 use wasm_bindgen::{prelude::Closure, JsCast};
 use web_sys::{MessageEvent, WebSocket};
 
-use crate::{
-    local_participant::{self, LocalParticipant},
-    participant::Participant,
-    room::Room,
-    signaling,
-};
-
-const STUN_SERVER: &str = "stun:stun.l.google.com:19302";
+use crate::{local_participant::LocalParticipant, participant::Participant, room::Room, signaling};
 
 pub struct Client {
     room: Rc<RefCell<Room>>,
@@ -63,6 +56,7 @@ impl Client {
         self.is_connected = true;
         self.init();
     }
+
     pub fn join_room(&mut self, room_id: &str) {
         let cloned_ws = self.ws.clone().unwrap();
         signaling::join_room(cloned_ws, RoomId::from_str(room_id).unwrap());

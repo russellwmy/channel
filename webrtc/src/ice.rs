@@ -1,9 +1,17 @@
 use futures::channel::oneshot;
-use js_sys::JSON;
+use js_sys::{Array, Object, Reflect, JSON};
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::{closure::Closure, JsCast, JsValue, UnwrapThrowExt};
 use wasm_bindgen_futures::JsFuture;
-use web_sys::{RtcIceCandidate, RtcIceCandidateInit, RtcPeerConnection, RtcPeerConnectionIceEvent};
+use web_sys::{
+    RtcConfiguration,
+    RtcIceCandidate,
+    RtcIceCandidateInit,
+    RtcPeerConnection,
+    RtcPeerConnectionIceEvent,
+};
+
+const STUN_SERVER: &str = "stun:stun.l.google.com:19302";
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -13,21 +21,42 @@ pub struct IceCandidate {
     pub sdp_m_line_index: u16,
 }
 
-pub async fn create_connection(connection: RtcPeerConnection) -> String {
-    let (tx, rx) = oneshot::channel();
-    let mut tx_opt = Some(tx);
+pub fn create_connection() -> RtcPeerConnection {
+    let ice_servers = Array::new();
+    {
+        let server_entry = Object::new();
 
-    let on_callback = Closure::<dyn FnMut(_)>::new(move |e: RtcPeerConnectionIceEvent| {
-        let data = e.candidate().unwrap();
-        let candidate = data.to_json();
-        let result = JSON::stringify(&candidate).unwrap_throw();
-        let _ = tx_opt.take().unwrap().send(result.into());
-    });
-    connection.set_onicecandidate(Some(on_callback.as_ref().unchecked_ref()));
-    on_callback.forget();
+        Reflect::set(
+            &server_entry,
+            &"urls".into(),
+            &STUN_SERVER.to_string().into(),
+        )
+        .unwrap();
 
-    rx.await.unwrap()
+        ice_servers.push(&*server_entry);
+    }
+
+    let mut rtc_configuration = RtcConfiguration::new();
+    rtc_configuration.ice_servers(&ice_servers);
+
+    RtcPeerConnection::new_with_configuration(&rtc_configuration).unwrap()
 }
+
+// pub async fn create_connection(connection: RtcPeerConnection) -> String {
+//     let (tx, rx) = oneshot::channel();
+//     let mut tx_opt = Some(tx);
+
+//     let on_callback = Closure::<dyn FnMut(_)>::new(move |e: RtcPeerConnectionIceEvent| {
+//         let data = e.candidate().unwrap();
+//         let candidate = data.to_json();
+//         let result = JSON::stringify(&candidate).unwrap_throw();
+//         let _ = tx_opt.take().unwrap().send(result.into());
+//     });
+//     connection.set_onicecandidate(Some(on_callback.as_ref().unchecked_ref()));
+//     on_callback.forget();
+
+//     rx.await.unwrap()
+// }
 
 pub async fn process_new_ice_candidate(
     rtc_connection: RtcPeerConnection,

@@ -25,7 +25,7 @@ pub struct Participant {
 
 impl Participant {
     pub fn new(id: ParticipantId, room_id: RoomId, ws: WebSocket) -> Self {
-        let connection = RtcPeerConnection::new().unwrap();
+        let connection = ice::create_connection();
         let cloned_ws = ws.clone();
         let cloned_room_id = room_id.clone();
         let cloned_id = id.clone();
