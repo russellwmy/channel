@@ -59,7 +59,7 @@ pub fn UserStateChecker(cx: Scope) -> Element {
                         Some(_) => rsx!(""),
                         None => rsx!(
                             button {
-                                
+
                                 onclick: handle_click,
                                 class: "p-2 text-info",
                                 span {
@@ -67,7 +67,7 @@ pub fn UserStateChecker(cx: Scope) -> Element {
                                     i {
                                         class: "fa-solid fa-circle-info"
                                     }
-                                }                               
+                                }
                             }
                         )
                     }

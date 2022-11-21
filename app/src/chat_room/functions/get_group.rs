@@ -1,7 +1,9 @@
 use web3_anywhere::near::{primitives::types::AccountId, Wallet};
 
 use crate::{
-    chat_room::types::{GetGroupInput, GroupOutput}, config::CONTRACT_ID, errors::ContractCallError,
+    chat_room::types::{GetGroupInput, GroupOutput},
+    config::CONTRACT_ID,
+    errors::ContractCallError,
     user::types::UserOutput,
 };
 

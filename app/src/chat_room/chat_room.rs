@@ -27,7 +27,8 @@ impl ChatRoomState {
     }
 
     pub fn add_chat_room(&mut self, chat_room: ChatRoom) {
-        self.chat_rooms.insert(chat_room.id.clone(), chat_room.clone());
+        self.chat_rooms
+            .insert(chat_room.id.clone(), chat_room.clone());
     }
 
     pub fn get_chat_room(&self, id: String) -> Option<ChatRoom> {

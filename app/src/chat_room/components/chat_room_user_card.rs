@@ -12,7 +12,7 @@ pub struct ChatRoomUserCardProps {
 pub fn ChatRoomUserCard(cx: Scope<ChatRoomUserCardProps>) -> Element {
     cx.render(rsx! {
         div {
-            class: "flex justify-between rounded-2xl bg-neutral-100 px-4 items-center",
+            class: "flex justify-between rounded-2xl bg-neutral-100 px-4 py-2 items-center",
             div {
                 class: "flex items-center text-slate-800",
                 p {
@@ -24,15 +24,15 @@ pub fn ChatRoomUserCard(cx: Scope<ChatRoomUserCardProps>) -> Element {
                     false => rsx!("")
                 }
             }
-            Icon{
-                name: match cx.props.muted {
-                    true => "fa-solid fa-microphone-slash",
-                    false => "fa-solid fa-microphone "
-                },
-                color: "text-black".to_owned(),
-                size: "w-10 h-10".to_owned(),
-                bg_color: "bg-neutral-100".to_owned(),
-            }
+            // Icon{
+            //     name: match cx.props.muted {
+            //         true => "fa-solid fa-microphone-slash",
+            //         false => "fa-solid fa-microphone "
+            //     },
+            //     color: "text-black".to_owned(),
+            //     size: "w-10 h-10".to_owned(),
+            //     bg_color: "bg-neutral-100".to_owned(),
+            // }
         }
 
     })

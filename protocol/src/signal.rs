@@ -6,8 +6,6 @@ pub enum Signal {
     
     NewParticipantJoined(RoomId, ParticipantId),
     ParticipantLeft(RoomId, ParticipantId),
-    CreateRoom,
-    RoomCreated(RoomId),
     JoinRoom(RoomId),
     JoinRoomSuccess(RoomId),
     JoinRoomError(RoomId),

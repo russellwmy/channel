@@ -52,7 +52,7 @@ pub fn ChatPage(cx: Scope) -> Element {
                 let mut client = cloned_client.write();
                 let mut local_participant = client.room().local_participant().unwrap();
 
-                local_participant.stop_stream().await;
+                local_participant.stop_streaming().await;
                 client.set_local_participant(local_participant);
             }
         });
@@ -62,7 +62,7 @@ pub fn ChatPage(cx: Scope) -> Element {
         let cloned_client = client.clone();
         cx.spawn({
             async move {
-                cloned_client.write().create_room();
+                // cloned_client.write().create_room();
             }
         });
     };

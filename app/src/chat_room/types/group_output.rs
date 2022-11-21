@@ -11,5 +11,5 @@ pub struct GroupOutput {
     pub creator: AccountId,
     pub id: String,
     pub name: String,
-    pub users: Vec<GroupUserOutput>
+    pub users: Vec<GroupUserOutput>,
 }
