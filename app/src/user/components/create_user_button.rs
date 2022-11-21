@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 
 use crate::{
-    user::{functions::set_user, types::NewUserInput},
+    user::{functions::set_user, types::SetUserInput},
     wallet::WALLET,
 };
 
@@ -19,7 +19,7 @@ pub fn CreateUserButton(cx: Scope) -> Element {
                 async move {
                     let result = set_user(
                         wallet_clone,
-                        NewUserInput {
+                        SetUserInput {
                             name: "steph".to_string(),
                             image: None,
                         },
@@ -32,14 +32,13 @@ pub fn CreateUserButton(cx: Scope) -> Element {
 
     let view = rsx! {
         div {
-            // key: cx.props.id,
             button {
                 onclick: handle_click,
                 class: "btn primary normal-case",
                 i {
                     class: "fa-solid fa-user-plus"
                 }
-                h4 { " Create user"}
+                h4 { "Create user"}
             }
         }
     };

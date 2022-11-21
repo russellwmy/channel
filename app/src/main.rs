@@ -8,7 +8,7 @@ use dioxus::{prelude::*, router::Router};
 
 mod app;
 mod chat;
-mod chatroom;
+mod chat_room;
 mod components;
 mod config;
 mod constant;
@@ -39,10 +39,10 @@ fn app(cx: Scope) -> Element {
     cx.render(rsx!(
         Router {
             div {
-            div {
-                class: "w-full h-full overflow-y-auto overflow-x-hidden",
-                Routes {}
-            }
+                div {
+                    class: "w-full h-full overflow-y-auto overflow-x-hidden",
+                    Routes {}
+                }
             }
         }
     ))

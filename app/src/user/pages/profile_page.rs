@@ -1,7 +1,7 @@
 use dioxus::{events::FormEvent, prelude::*};
 
 use crate::{
-    user::{functions::set_user, types::NewUserInput},
+    user::{functions::set_user, types::SetUserInput},
     wallet::WALLET,
 };
 
@@ -20,7 +20,7 @@ pub fn ProfilePage(cx: Scope) -> Element {
             cx.spawn({
                 async move {
                     log::info!("name: {}", name);
-                    let result = set_user(wallet_clone, NewUserInput { name, image: None }).await;
+                    let result = set_user(wallet_clone, SetUserInput { name, image: None }).await;
                 }
             });
         }

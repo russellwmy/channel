@@ -1,22 +1,22 @@
 use std::collections::HashMap;
 
-pub type ChatroomUsers = HashMap<String, ChatroomUser>;
+pub type ChatRoomUsers = HashMap<String, ChatRoomUser>;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-pub struct ChatroomCard {
+pub struct ChatRoomCard {
     pub id: u32,
     pub name: String,
-    pub user: ChatroomUsers,
+    pub user: ChatRoomUsers,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-pub struct NewChatroom {
+pub struct ChatRoom {
+    pub id: String,
     pub name: String,
-    pub user: ChatroomUsers,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-pub struct ChatroomUser {
+pub struct ChatRoomUser {
     pub address: String,
     pub muted: bool,
 }

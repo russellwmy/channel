@@ -14,10 +14,10 @@ use web3_anywhere::{
 
 use crate::{
     config::{CONTRACT_ID, GAS_FEE},
-    user::types::SetUserInput,
+    chat_room::types::SetGroupInput,
 };
 
-pub async fn set_user(wallet: Wallet, input: SetUserInput) {
+pub async fn set_group(wallet: Wallet, input: SetGroupInput) {
     let contract_id = CONTRACT_ID.parse::<AccountId>().unwrap();
     let account_id = wallet.account_id().unwrap();
     let public_key = wallet.public_key().unwrap();
@@ -44,7 +44,7 @@ pub async fn set_user(wallet: Wallet, input: SetUserInput) {
         block_hash: block_hash,
         receiver_id: contract_id,
         actions: vec![Action::FunctionCall(FunctionCallAction {
-            method_name: "set_user".to_string(),
+            method_name: "set_group".to_string(),
             args: bytes.clone().into(),
             gas: GAS_FEE,
             deposit: 0,
