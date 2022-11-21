@@ -7,7 +7,7 @@ use web3_anywhere::near::{
     Wallet,
 };
 
-use crate::{chatroom::types::SetGroupInput, config::CHANNEL_CONTRACT_ID};
+use crate::{ config::CHANNEL_CONTRACT_ID};
 
 pub async fn get_groups_debug(wallet: Wallet) -> Result<bool, serde_json::Error> {
     let contract_id = CHANNEL_CONTRACT_ID.parse::<AccountId>().unwrap();

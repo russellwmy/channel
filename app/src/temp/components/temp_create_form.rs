@@ -1,11 +1,11 @@
 use dioxus::{events::MouseEvent, prelude::*};
 
-// use crate::chatroom::components::ChatroomCard;
+// use crate::chat_room::components::ChatRoomCard;
 
 #[derive(Props)]
 pub struct TempCreateFormProps<'a> {
-    // chatroom_list: &'a im_rc::HashMap<u32, ChatroomCard>,
-    // chatroom_id: &'a u32,
+    // chat_room_list: &'a im_rc::HashMap<u32, ChatRoomCard>,
+    // chat_room_id: &'a u32,
     onclick: EventHandler<'a, MouseEvent>,
 }
 

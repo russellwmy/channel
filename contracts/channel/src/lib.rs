@@ -77,7 +77,6 @@ impl ChannelContract {
     }
 
     // set group - create / edit group, creator will be joined
-    #[payable]
     pub fn set_group(&mut self, id: String, name: String) -> bool {
         let sender = env::predecessor_account_id();
 
@@ -152,6 +151,14 @@ impl ChannelContract {
 
     pub fn get_user(&self, account_id: AccountId) -> Option<User> {
         self.users.iter().find(|u| u.account_id == account_id)
+    }
+
+    pub fn get_owned_groups(&self, account_id: AccountId) -> Vec<Group> {
+        return self
+            .groups
+            .iter()
+            .filter(|gu| gu.creator == account_id)
+            .collect();
     }
 
     pub fn get_joined_groups(&self, account_id: AccountId) -> Vec<Group> {

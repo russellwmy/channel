@@ -3,12 +3,12 @@ use dioxus::prelude::*;
 use crate::{components::Icon, constant::COLOR_LIST};
 
 #[derive(PartialEq, Props)]
-pub struct ChatroomUserCardProps {
+pub struct ChatRoomUserCardProps {
     address: String,
     muted: bool,
 }
 
-pub fn ChatroomUserCard(cx: Scope<ChatroomUserCardProps>) -> Element {
+pub fn ChatRoomUserCard(cx: Scope<ChatRoomUserCardProps>) -> Element {
     let bg_color = COLOR_LIST[2];
     let icon_status = if cx.props.muted {
         "fa-solid fa-microphone-slash"
