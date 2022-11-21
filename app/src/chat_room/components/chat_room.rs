@@ -4,8 +4,8 @@ use webrtc::Client;
 use crate::{
     chat_room::{
         components::{ChatRoomUserCard, InviteUserModal},
-        functions::get_group,
-        types::GetGroupInput,
+        functions::{get_group, join_group},
+        types::{GetGroupInput, JoinGroupInput},
     },
     wallet::WALLET,
 };
@@ -27,6 +27,8 @@ pub fn ChatRoom(cx: Scope<ChatRoomUserListProps>) -> Element {
     let room_id = cx.props.room_id.clone();
     let router = use_router(&cx);
     let is_muted = use_state(&cx, || true);
+    let is_joined = use_state(&cx, || false);
+    let is_refresh = use_state(&cx, || false);
     let wallet_state = use_atom_ref(&cx, WALLET);
     let wallet = wallet_state.read().wallet();
     let wallet_clone = wallet.clone();
@@ -38,6 +40,8 @@ pub fn ChatRoom(cx: Scope<ChatRoomUserListProps>) -> Element {
     let cloned_client = client.clone();
 
     let room_id_clone = room_id.clone();
+    let room_id_clone_2 = room_id.clone();
+
     let client_fut = use_future(&cx, (), |_| async move {
         let ws_host = web_sys::window().unwrap().location().host().unwrap();
         let protocol = web_sys::window().unwrap().location().protocol().unwrap();
@@ -72,6 +76,42 @@ pub fn ChatRoom(cx: Scope<ChatRoomUserListProps>) -> Element {
         }
     });
 
+    let handle_join_group = move |_| {
+        let wallet_clone_2 = wallet_clone.clone();
+        let room_id_clone_3 = room_id_clone_2.clone();
+        cx.spawn({
+            async move {
+                join_group( 
+                    wallet_clone_2,
+                    JoinGroupInput { id: room_id_clone_3},
+                ).await;
+            }
+        });
+        group_fut.restart();
+        is_refresh.set(true);
+    };
+
+    if **is_refresh {
+        match group_fut.clone().value() {
+            Some(value) => match value {
+                Some(group) => match account_id_clone {
+                    Some(account_id_clone) => {
+                        let joined = group
+                            .clone()
+                            .users
+                            .iter()
+                            .any(|v| v.account_id == account_id_clone);
+                        is_joined.set(joined);
+                    }
+                    None => {}
+                },
+                None => {}
+            },
+            None => {}
+        };
+        is_refresh.set(false);
+    };
+
     let handle_microphone_click = move |_| {
         let cloned_client = client.clone();
         let cloned_is_muted = is_muted.clone();
@@ -91,11 +131,15 @@ pub fn ChatRoom(cx: Scope<ChatRoomUserListProps>) -> Element {
             }
         });
     };
+
     let microphone_button_class = match *(is_muted).clone() {
         true => "btn-error",
         false => "btn-success",
     };
-    cx.render(rsx! (
+
+    log::info!("is_joined:: {}", is_joined);
+
+    let joined_view = rsx! (
         div {
             class: "relative items-stretch",
             div {
@@ -151,5 +195,23 @@ pub fn ChatRoom(cx: Scope<ChatRoomUserListProps>) -> Element {
                 }
             }
         }
-    ))
+    );
+
+    let not_joined_view = rsx! (
+        div {
+            class: "flex flex-col items-center justify-stretch h-[50px] mb-2",
+            button {
+                class: "btn w-[150px] h-[48px] ml-1",
+                onclick: handle_join_group,
+                h2 {"Join Channel"}
+            }
+        }
+    );
+
+    let view = match *(is_joined).clone() {
+        true => joined_view,
+        false => not_joined_view,
+    };
+
+    cx.render(view)
 }
