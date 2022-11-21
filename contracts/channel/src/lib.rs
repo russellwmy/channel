@@ -1,6 +1,6 @@
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
-    collections::Vector,
+    collections::{UnorderedMap, Vector},
     env,
     json_types::U128,
     near_bindgen,
@@ -9,18 +9,20 @@ use near_sdk::{
     Balance,
 };
 
+pub type GroupId = String;
+
 #[derive(BorshDeserialize, BorshSerialize, Serialize)]
 #[serde(crate = "near_sdk::serde")]
 pub struct Group {
-    pub id: String,
+    pub id: GroupId,
     pub creator: AccountId,
     pub name: String,
+    pub users: Vec<GroupUser>,
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Serialize)]
 #[serde(crate = "near_sdk::serde")]
 pub struct GroupUser {
-    pub group_id: String,
     pub account_id: AccountId,
     pub is_admin: bool,
 }
@@ -48,17 +50,18 @@ pub struct User {
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct ChannelContract {
-    groups: Vector<Group>,
-    group_users: Vector<GroupUser>,
-    users: Vector<User>,
+    groups: UnorderedMap<GroupId, Group>,
+    users: UnorderedMap<AccountId, User>,
+    user_owned_groups: UnorderedMap<AccountId, Vector<GroupId>>,
+    // user_joined_groups: UnorderedMap<AccountId, Vector<GroupId>>,
 }
 
 impl Default for ChannelContract {
     fn default() -> Self {
         Self {
-            groups: Vector::new(b"g"),
-            group_users: Vector::new(b"j"), //j for "join" table
-            users: Vector::new(b"u"),
+            groups: UnorderedMap::new(b"g"),
+            users: UnorderedMap::new(b"u"),
+            user_owned_groups: UnorderedMap::new(b"o"),
         }
     }
 }
@@ -70,117 +73,114 @@ impl ChannelContract {
     pub fn migrate() -> Self {
         // just clear state on migration
         Self {
-            groups: Vector::new(b"g"),
-            group_users: Vector::new(b"j"), //j for "join" table
-            users: Vector::new(b"u"),
+            groups: UnorderedMap::new(b"g"),
+            users: UnorderedMap::new(b"u"),
+            user_owned_groups: UnorderedMap::new(b"o"),
         }
     }
 
     // set group - create / edit group, creator will be joined
-    pub fn set_group(&mut self, id: String, name: String) -> bool {
+    pub fn set_group(&mut self, id: String, name: String) {
         let sender = env::predecessor_account_id();
-
-        // if group exists edit it
-        for i in 0..self.groups.len() {
-            let group = self.groups.get(i).unwrap();
-            if group.id == id && group.creator == sender {
-                let new_group = Group {
-                    creator: group.creator,
-                    id: group.id,
-                    name: name,
-                };
-
-                self.groups.replace(i, &new_group);
-                return true;
+        let group = self.groups.get(&id);
+        let group_data = match group {
+            Some(group) => {
+                let mut group_mut = group;
+                if group_mut.creator == sender {
+                    group_mut.name = name;
+                }
+                group_mut
             }
-        }
+            None => {
+                let group = Group {
+                    id: id.clone(),
+                    creator: sender.clone(),
+                    name,
+                    users: vec![GroupUser {
+                        account_id: sender.clone(),
+                        is_admin: true,
+                    }],
+                };
+                let mut owned_groups = self
+                    .user_owned_groups
+                    .get(&sender)
+                    .unwrap_or(Vector::new(b"o"));
+                owned_groups.push(&id);
 
-        // create group
-        let group = Group {
-            id: id.clone(),
-            creator: sender.clone(),
-            name,
+                self.user_owned_groups.insert(&sender, &owned_groups);
+
+                group
+            }
         };
-        self.groups.push(&group);
 
-        // creator joins group
-        let group_user = GroupUser {
-            group_id: id.clone(),
-            account_id: sender.clone(),
-            is_admin: true,
-        };
-        self.group_users.push(&group_user);
-
-        return true;
+        self.groups.insert(&group_data.id, &group_data);
     }
 
     // set user - create / edit user profile
-    // #[payable]
-    pub fn set_user(&mut self, name: String, image: Option<String>) -> bool {
+    pub fn set_user(&mut self, name: String, image: Option<String>) {
         let sender = env::predecessor_account_id();
+        let user = self.users.get(&sender);
+        let user_data = match user {
+            Some(user) => {
+                let mut user_mut = user;
+                user_mut.name = name;
+                user_mut.image = image;
 
-        // if user exists edit it
-        for i in 0..self.users.len() {
-            let user = self.users.get(i).unwrap();
-            if user.account_id == sender {
-                let new_user = User {
-                    account_id: sender,
-                    name: name,
-                    image: image,
-                };
-
-                self.users.replace(i, &new_user);
-                return true;
+                user_mut
             }
-        }
-
-        // create user
-        let user = User {
-            account_id: sender,
-            name: name,
-            image: image,
+            None => User {
+                account_id: sender,
+                name: name,
+                image: image,
+            },
         };
-        self.users.push(&user);
 
-        return true;
+        self.users.insert(&user_data.account_id, &user_data);
     }
 
-    pub fn get_groups_debug(&self) -> Vec<Group> {
-        return self.groups.iter().collect();
+    // pub fn get_groups_debug(&self) -> Vec<Group> {
+    //     return self.groups.iter().collect();
+    // }
+
+    pub fn get_group(&self, group_id: GroupId) -> Option<Group> {
+        self.groups.get(&group_id)
     }
 
     pub fn get_user(&self, account_id: AccountId) -> Option<User> {
-        self.users.iter().find(|u| u.account_id == account_id)
+        self.users.get(&account_id)
     }
 
     pub fn get_owned_groups(&self, account_id: AccountId) -> Vec<Group> {
-        return self
-            .groups
-            .iter()
-            .filter(|gu| gu.creator == account_id)
-            .collect();
+        let user_owned_groups = self.user_owned_groups.get(&account_id);
+        match user_owned_groups {
+            Some(user_owned_groups) => user_owned_groups
+                .iter()
+                .map(|g| self.groups.get(&g).unwrap())
+                .collect(),
+            Non => vec![],
+        }
     }
 
-    pub fn get_joined_groups(&self, account_id: AccountId) -> Vec<Group> {
-        return self
-            .group_users
-            .iter()
-            .filter(|gu| gu.account_id == account_id)
-            .map(|gu| self.groups.iter().find(|g| g.id == gu.group_id).unwrap())
-            .collect();
-    }
+    // pub fn get_joined_groups(&self, account_id: AccountId) -> Vec<Group> {
+    //     return self
+    //         .group_users
+    //         .iter()
+    //         .filter(|gu| gu.account_id == account_id)
+    //         .map(|gu| self.groups.iter().find(|g| g.id == gu.group_id).unwrap())
+    //         .collect();
+    // }
 
-    pub fn get_group_users(&self, group_id: String) -> Vec<User> {
-        return self
-            .group_users
-            .iter()
-            .filter(|gu| gu.group_id == group_id)
-            .map(|gu| {
-                self.users
-                    .iter()
-                    .find(|u| u.account_id == gu.account_id)
-                    .unwrap()
-            })
-            .collect();
-    }
+    // pub fn get_group_users(&self, group_id: String) -> Vec<User> {
+    //     return self
+    //         .group_users
+    //         .iter()
+    //         .filter(|gu| gu.group_id == group_id)
+    //         .map(|gu| {
+    //             self.users
+    //                 .iter()
+    //                 .find(|u| u.account_id == gu.account_id)
+    //                 .unwrap()
+    //         })
+    //         .collect();
+    // }
 }

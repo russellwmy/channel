@@ -10,14 +10,13 @@ pub struct ChatRoomUserCardProps {
 }
 
 pub fn ChatRoomUserCard(cx: Scope<ChatRoomUserCardProps>) -> Element {
-    let bg_color = COLOR_LIST[2];
-
     cx.render(rsx! {
         div {
             class: "flex justify-between rounded-2xl bg-neutral-100 px-4 items-center",
             div {
-                class: "text-slate-800",
+                class: "flex items-center text-slate-800",
                 p {
+                    class: "mr-2",
                     "{cx.props.account_id}"
                 }
                 match cx.props.is_admin {
