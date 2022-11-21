@@ -46,8 +46,7 @@ pub fn ChatRoomList(cx: Scope) -> Element {
         div {
             class: "relative items-stretch",
             div {
-                class: "relative flex justify-center h-[50px] mb-2",
-                NewChatRoomModal{}
+                class: "relative flex justify-between h-[50px] mb-2",
                 button {
                     class: "btn ml-1",
                     onclick: move |_| {
@@ -55,6 +54,7 @@ pub fn ChatRoomList(cx: Scope) -> Element {
                     },
                     i { class: "fa-solid fa-rotate" },
                 }
+                NewChatRoomModal{}
             }
             div {
                 match chat_rooms_fut.value() {
