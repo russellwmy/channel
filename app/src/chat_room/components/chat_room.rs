@@ -39,11 +39,15 @@ pub fn ChatRoom(cx: Scope<ChatRoomUserListProps>) -> Element {
 
     let room_id_clone = room_id.clone();
     let client_fut = use_future(&cx, (), |_| async move {
-        let host = web_sys::window().unwrap().location().host().unwrap();
-
+        let ws_host = web_sys::window().unwrap().location().host().unwrap();
+        let protocol = web_sys::window().unwrap().location().protocol().unwrap();
+        let ws_protocol = match protocol == "https" {
+            true => "wss",
+            false => "ws",
+        };
         cloned_client
             .write()
-            .connect(format!("wss://{}/ws", host).as_str())
+            .connect(format!("{}://{}/ws", ws_protocol, ws_host).as_str())
             .await;
         cloned_client.write().join_room(&room_id_clone.clone());
     });
@@ -122,16 +126,24 @@ pub fn ChatRoom(cx: Scope<ChatRoomUserListProps>) -> Element {
                 match group_fut.value() {
                     Some(value) => {
                         match value {
-                            Some(group) =>  rsx!(
-                                group.users.iter().map(|item| {
-                                    rsx!(ChatRoomUserCard {
-                                        key: "{item.account_id}",
-                                        account_id: item.account_id.to_string(),
-                                        muted: false,
-                                        is_admin: item.is_admin,
+                            Some(group) =>  {
+                                rsx!(
+                                    div {
+                                        class: "flex text-xl font-bold text-white p-2",                                       
+                                        "Room: {group.name}"
+                                    }
+
+                                    group.users.iter().map(|item| {
+                                        rsx!(ChatRoomUserCard {
+                                            key: "{item.account_id}",
+                                            account_id: item.account_id.to_string(),
+                                            muted: false,
+                                            is_admin: item.is_admin,
+                                        })
                                     })
-                                })
-                            ),
+                                
+                                )
+                            },
                             None => rsx!("")
                         }
                     }
