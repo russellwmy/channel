@@ -1,6 +1,9 @@
 use dioxus::prelude::*;
 
-use crate::wallet::{components::NearConnectButton, WALLET};
+use crate::{
+    user::components::UserStateChecker,
+    wallet::{components::NearConnectButton, WALLET},
+};
 
 pub fn TopBar(cx: Scope) -> Element {
     let wallet_state = use_atom_ref(&cx, WALLET);
@@ -11,15 +14,17 @@ pub fn TopBar(cx: Scope) -> Element {
             class: "p-2 flex items-center",
             div {
                 class: "flex-1"
-            }
-            span {
-                class: "mr-2",
-                match account_id {
-                    Some(account_id)=> rsx!("{account_id}"),
-                    None => rsx!("")
-                }
-            }
 
+            }
+            UserStateChecker{}
+            match account_id {
+                Some(account_id)=> rsx!( span {
+                    class: "mr-2",
+                    "{account_id}"
+                }),
+                None => rsx!("")
+            }
+        
             NearConnectButton{}
         }
 

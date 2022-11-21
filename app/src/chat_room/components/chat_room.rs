@@ -1,14 +1,10 @@
-use std::collections::HashMap;
-
 use dioxus::prelude::*;
 
 use crate::{
     chat_room::{
-        self,
-        components::{ChatRoomListCard, NewChatRoomModal},
-        functions::get_owned_groups,
-        types::{ChatRoom, GetOwnedGroupsInput},
-        CHATROOM,
+        components::{ChatRoomUserCard, InviteUserModal},
+        functions::get_group_users,
+        types::GetGroupUserInput,
     },
     user::USER,
     wallet::WALLET,
@@ -19,7 +15,13 @@ enum Version {
     Version2,
 }
 
-pub fn ChatRoomList(cx: Scope) -> Element {
+#[derive(PartialEq, Props)]
+pub struct ChatRoomUserListProps {
+    room_id: String,
+}
+
+pub fn ChatRoom(cx: Scope<ChatRoomUserListProps>) -> Element {
+    let room_id = cx.props.room_id.clone();
     let router = use_router(&cx);
     let wallet_state = use_atom_ref(&cx, WALLET);
     let wallet = wallet_state.read().wallet();
@@ -30,14 +32,14 @@ pub fn ChatRoomList(cx: Scope) -> Element {
     let user = user_state.read().user();
     let username = use_state(&cx, || "".to_string());
 
-    let chat_rooms_fut = use_future(&cx, (), |_| async move {
+    let group_users_fut = use_future(&cx, (), |_| async move {
         match account_id {
             Some(account_id) => {
                 let wallet_clone = wallet.clone();
-                get_owned_groups(
+                get_group_users(
                     wallet_clone,
-                    GetOwnedGroupsInput {
-                        account_id: account_id.clone(),
+                    GetGroupUserInput {
+                        group_id: room_id.clone(),
                     },
                 )
                 .await
@@ -51,30 +53,25 @@ pub fn ChatRoomList(cx: Scope) -> Element {
             class: "relative items-stretch",
             div {
                 class: "relative flex justify-center h-[50px] mb-2",
-                NewChatRoomModal{}
+                InviteUserModal{}
                 button {
                     class: "btn ml-1",
                     onclick: move |_| {
-                        chat_rooms_fut.restart();
+                        group_users_fut.restart();
                     },
                     i { class: "fa-solid fa-rotate" },
                 }
             }
             div {
-                match chat_rooms_fut.value() {
+                match group_users_fut.value() {
                     Some(Ok(groups)) => {
                         rsx!(
                             groups.iter().map(|item| {
-                                rsx!(ChatRoomListCard {
-                                    id: "{item.id}",
-                                    key: "{item.id}",
-                                    name: item.name.clone(),
-                                    creator: item.creator.clone().to_string(),
-                                    active:  false,
-                                    onclick: move |_| {
-                                        let view_url = format!("/room/{}", item.id);
-                                        router.push_route(&view_url, None, None);
-                                    }
+                                rsx!(ChatRoomUserCard {
+                                    key: "{item.account_id}",
+                                    account_id: item.account_id.to_string(),
+                                    muted: false,
+                                    is_admin: false,
                                 })
                             })
                         )

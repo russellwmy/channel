@@ -1,3 +1,3 @@
-mod create_user_button;
+mod user_state_checker;
 
-pub use create_user_button::CreateUserButton;
+pub use user_state_checker::UserStateChecker;

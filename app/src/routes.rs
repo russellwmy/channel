@@ -22,9 +22,8 @@ fn Private<'a>(cx: Scope<'a, PrivateProps<'a>>) -> Element {
 pub fn Routes(cx: Scope) -> Element {
     cx.render(rsx!(
         Route { to: "/", chat_room::pages::LobbyPage{}}
-        Route { to: "/mic-check", mic_check::pages::MicCheckPage{}}
         Route { to: "/lobby", chat_room::pages::LobbyPage{}}
-        Route { to: "/profile", user::pages::ProfilePage{}}
+        Route { to: "/room/:room_id", chat_room::pages::ChatRoomPage{}}
         Route { to: "", app::pages::PageNotFound{}}
     ))
 }
