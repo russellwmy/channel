@@ -71,7 +71,7 @@ impl ChannelContract {
     #[private]
     #[init(ignore_state)]
     pub fn migrate() -> Self {
-        // just clear state on migration
+        // can't reset state, tried clear on the maps, but
         Self {
             groups: UnorderedMap::new(b"g"),
             users: UnorderedMap::new(b"u"),
@@ -159,6 +159,28 @@ impl ChannelContract {
                 .collect(),
             Non => vec![],
         }
+    }
+
+    pub fn join_group(&mut self, id: String) {
+        let sender = env::predecessor_account_id();
+
+        let mut group = self.groups.get(&id).unwrap();
+
+        // if already joined, return
+        for i in 0..group.users.len() {
+            let groupUser = group.users.get(i).unwrap();
+            if groupUser.account_id == sender {
+                return;
+            }
+        }
+
+        let groupUser = GroupUser {
+            account_id: sender,
+            is_admin: false,
+        };
+        group.users.push(groupUser);
+
+        self.groups.insert(&group.id, &group);
     }
 
     // pub fn get_joined_groups(&self, account_id: AccountId) -> Vec<Group> {
