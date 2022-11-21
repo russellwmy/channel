@@ -8,6 +8,8 @@ A web3 audio chat app for gamers & metaverse adventurers
 - `contracts` contains all smart contracts
 - `docs` contains related documents, e.g. architecture design
 - `template` is the template project for a new project
+- `webrtc` contains webrtc client for audio chat
+- `signalling-server` contains signalling server logic
 
 ## Techstacks
 
@@ -31,3 +33,8 @@ A web3 audio chat app for gamers & metaverse adventurers
 ### NEAR client SDK
 
 - [Web3 Anywhere](https://github.com/russellwmy/web3-anywhere)
+
+## Get Start
+- in `signalling-server` folder run command: `cargo make serve` for signalling
+- in `app` folder run command: `cargo make dev` for web frontend
+- go to `http://localhost:8080`
